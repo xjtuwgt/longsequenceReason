@@ -119,6 +119,7 @@ def get_hotpotqa_longformer_tokenizer(model_name=PRE_TAINED_LONFORMER_BASE, do_l
     special_tokens_dict = {'additional_special_tokens': ['<q>', '</q>', '<d>', '<p>']}
     num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
     print('Number of added tokens = {}: {}'.format(num_added_toks, special_tokens_dict))
+    print('*' * 75)
     return tokenizer
 
 class LongformerEncoder(LongformerModel):
