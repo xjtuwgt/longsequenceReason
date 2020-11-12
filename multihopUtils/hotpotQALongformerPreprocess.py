@@ -462,6 +462,7 @@ def hotpotqa_preprocess_example():
     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=PRE_TAINED_LONFORMER_BASE)
     longformer_tokenizer = LongformerQATensorizer(tokenizer=tokenizer, max_length=-1)
     dev_data, _ = HOTPOT_DevData_Distractor()
+    print('*' * 75)
     dev_test_data = Hotpot_Test_Data_PreProcess(data=dev_data, tokenizer=longformer_tokenizer)
     print('Get {} dev-test records'.format(dev_test_data.shape[0]))
     dev_test_data.to_json(os.path.join(abs_distractor_wiki_path, 'hotpot_test_distractor_wiki_tokenized.json'))
