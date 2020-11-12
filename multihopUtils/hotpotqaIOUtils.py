@@ -50,7 +50,7 @@ def save_data_frame_to_json(df: DataFrame, file_name: str):
 ###+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def save_check_point(model, optimizer: Adam, loss, eval_metric, step, args):
     argparse_dict = vars(args)
-    with open(os.path.join(args.save_path, 'config.json'), 'w') as fjson:
+    with open(os.path.join(args.save_path, 'config.json'), 'w') as fjson: ## saving model parameters
         json.dump(argparse_dict, fjson)
     model_to_save = model
     save_path = os.path.join(args.save_path, str(step) + '_' + str(loss) + '_' + str(eval_metric) + '.pt')
@@ -67,7 +67,7 @@ def save_check_point(model, optimizer: Adam, loss, eval_metric, step, args):
     }, save_path)
     return save_path
 
-def load_check_point(model, optimizer: Adam, PATH: str):
+def load_check_point_for_train(model, optimizer: Adam, PATH: str):
     if not torch.cuda.is_available():
         device = torch.device("cpu")
         checkpoint = torch.load(PATH, device)
@@ -79,6 +79,13 @@ def load_check_point(model, optimizer: Adam, PATH: str):
     loss = checkpoint['loss']
     eval_metric = checkpoint['eval']
     return model, optimizer, step, loss, eval_metric
+
+def load_check_point(config_json_name: str, model_name: str, PATH: str):
+    config_json_file = os.path.join(PATH, config_json_name)
+    with open(config_json_file, 'r') as config_file:
+        config_data = json.load(config_file)
+
+    return
 
 def load_model(model, PATH: str):
     if not torch.cuda.is_available():

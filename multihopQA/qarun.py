@@ -13,7 +13,6 @@ from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting, set_seeds
 from modelTrain.QATrainFunction import get_train_data_loader, get_dev_data_loader, get_model, get_date_time, get_check_point
 from modelTrain.QATrainFunction import train_all_steps, test_all_steps, log_metrics
-from modelTrain.EfficientQATraining import train_all_steps as efficient_train_all_steps
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 
 def parse_args(args=None):
@@ -60,15 +59,15 @@ def parse_args(args=None):
     parser.add_argument('--input_drop', default=0.1, type=float)
     parser.add_argument('--attn_drop', default=0.1, type=float)
     parser.add_argument('--heads', default=8, type=float)
-    parser.add_argument('--with_graph', default=1, type=int)
-    parser.add_argument('--task', default='doc', type=str) ## doc, doc_sent, doc_sent_ans
-    parser.add_argument('--with_graph_training', default=1, type=int)
+    parser.add_argument('--with_graph', default=0, type=int)
+    parser.add_argument('--task', default='doc_sent_ans', type=str) ## doc, doc_sent, doc_sent_ans
+    parser.add_argument('--with_graph_training', default=0, type=int)
     parser.add_argument('--span_weight', default=0.2, type=float)
-    parser.add_argument('--pair_score_weight', default=1.0, type=float)
+    parser.add_argument('--pair_score_weight', default=0.0, type=float)
     parser.add_argument('--seq_project', default=True, action='store_true', help='whether perform sequence projection')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--num_labels', default=2, type=int, help='span prediction label') ##start and end position prediction, seperately
-    parser.add_argument('--grad_clip_value', default=10.0, type=float)
+    parser.add_argument('--grad_clip_value', default=1.0, type=float)
     parser.add_argument('-cpu', '--cpu_num', default=12, type=int)
     parser.add_argument('-init', '--init_checkpoint', default=None, type=str)
     parser.add_argument('-save', '--save_path', default='../model', type=str)
@@ -183,7 +182,7 @@ def main(args):
     if args.do_train:
         # Set training configuration
         start_time = time()
-        logging.info('Loading reasonModel...')
+        logging.info('Loading Model...')
         if args.init_checkpoint is None:
             model = get_model(args=args).to(device)
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
