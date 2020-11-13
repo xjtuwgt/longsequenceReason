@@ -381,7 +381,7 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['ques_encode', 'ques_len', 'ctx_encode', 'ctx_lens', 'ctx_max_len']] = \
-        data.swifter.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
     print('Number of data = {}'.format(data.shape))
     return data
