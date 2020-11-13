@@ -4,6 +4,9 @@ PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor, HOTPOT_TrainData
+from multihopUtils.longformerQAUtils import LongformerQATensorizer
+from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
+from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 distractor_wiki_path = '../data/hotpotqa/distractor_qa'
 abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
 print('Preprocess data path = {}'.format(abs_distractor_wiki_path))
@@ -11,9 +14,6 @@ from pandas import DataFrame
 import pandas as pd
 from time import time
 import string
-from multihopUtils.longformerQAUtils import LongformerQATensorizer
-from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
-from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 import itertools
 import operator
 import swifter
