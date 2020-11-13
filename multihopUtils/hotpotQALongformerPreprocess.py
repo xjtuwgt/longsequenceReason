@@ -321,7 +321,7 @@ def Hotpot_Dev_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensorize
     start_time = time()
     data[['ques_encode', 'ques_len', 'answer_encode', 'answer_len', 'p_ctx_encode', 'p_ctx_lens', 'pc_max_len',
           'n_ctx_encode', 'n_ctx_lens', 'nc_max_len']] = \
-        data.swifter.progress_bar(True).apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
     print('Number of data = {}'.format(data.shape))
     return data
