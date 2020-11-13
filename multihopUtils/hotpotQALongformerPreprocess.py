@@ -17,7 +17,6 @@ import operator
 # from pandarallel import pandarallel
 # pandarallel.initialize(nb_workers=4)
 import swifter
-
 SPECIAL_QUERY_START = '<q>' ### for query marker
 SPECIAL_QUERY_END = '</q>' ### for query marker
 SPECIAL_DOCUMENT_TOKEN = '<d>' ### for document maker
