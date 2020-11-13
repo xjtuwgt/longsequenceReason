@@ -355,11 +355,11 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def row_encoder(row):
         norm_question, norm_ctxs = row['norm_query'], row['norm_ctx']
-        print('question {}'.format(norm_question))
+        # print('question {}'.format(norm_question))
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         query_encode_ids = query_encoder(query=norm_question, tokenizer=tokenizer)
         query_len = len(query_encode_ids)
-        print('query len {}'.format(query_len))
+        # print('query len {}'.format(query_len))
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         ctx_encode_ids = []
         max_doc_len = 0
@@ -381,7 +381,7 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['ques_encode', 'ques_len', 'ctx_encode', 'ctx_lens', 'ctx_max_len']] = \
-        data.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.swifter.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
     print('Number of data = {}'.format(data.shape))
     return data
