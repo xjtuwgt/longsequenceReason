@@ -135,6 +135,8 @@ def main(args):
             if used_memory > 100:
                 logging.info('Using memory = {}'.format(used_memory))
             if device_ids is not None:
+                if len(device_ids) > args.gpu_num:
+                    device_ids = device_ids[:args.gpu_num]
                 device = torch.device('cuda:{}'.format(device_ids[0]))
             else:
                 device = torch.device('cuda:0')
