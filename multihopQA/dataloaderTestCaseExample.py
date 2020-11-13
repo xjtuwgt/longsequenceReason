@@ -11,7 +11,7 @@ from multihopQA.hotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset, 
 
 def data_loader_consistent_checker(train=True):
     file_path = '../data/hotpotqa/distractor_qa'
-    dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
+    dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
     data_frame = read_train_dev_data_frame(PATH=file_path, json_fileName=dev_file_name)
     longtokenizer = get_hotpotqa_longformer_tokenizer()
     hotpot_tensorizer = LongformerQATensorizer(tokenizer=longtokenizer, max_length=4096)
@@ -76,6 +76,7 @@ def data_loader_consistent_checker(train=True):
         for idx in range(ctx_encode.shape[0]):
             ctx_i = ctx_encode[idx]
             marker_i = marker[idx]
+
             marker_idx = marker_i.nonzero().squeeze()
             print('marker text {}'.format(longtokenizer.decode(ctx_i[marker_idx])))
             print('*' * 75)
@@ -97,7 +98,7 @@ def data_loader_consistent_checker(train=True):
             # print(ans_start_i)
 
             doc_marker = longtokenizer.decode(ctx_i[doc_start_i])
-            # print(doc_marker)
+            print('doc_marker: {}'.format(doc_marker))
 
             sent_marker = longtokenizer.decode(ctx_i[sent_start_i])
             print('doc: {}\nsent: {}\n{}\n{}'.format(doc_marker, sent_marker, sent_start_i.shape, sent_lens[idx]))
@@ -361,9 +362,9 @@ def answer_consistent_checker():
     return
 
 if __name__ == '__main__':
-    # data_loader_consistent_checker(False)
+    data_loader_consistent_checker(True)
     # data_loader_checker()
     # test_data_loader_checker()
     # data_consistent_checker(train=True)
-    answer_consistent_checker()
+    # answer_consistent_checker()
     print()
