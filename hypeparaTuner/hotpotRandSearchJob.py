@@ -60,4 +60,4 @@ def generate_random_search_bash(task_num):
     print('{} jobs have been generated'.format(task_num))
 
 if __name__ == '__main__':
-    generate_random_search_bash(task_num=6)
+    generate_random_search_bash(task_num=8)
