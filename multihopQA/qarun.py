@@ -80,7 +80,9 @@ def parse_args(args=None):
     parser.add_argument('--log_steps', default=50, type=int, help='train log every xx steps')
     parser.add_argument('--test_log_steps', default=10, type=int, help='valid/test log every xx steps')
     parser.add_argument('--rand_seed', default=12345, type=int, help='random seed')
-
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--device_rank_ids', default=None, type=list)
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
 
 def set_logger(args):
@@ -170,6 +172,9 @@ def main(args):
         device_ids = None
         logging.info('CPU setting')
 
+    ###=============================
+    args.device_rank_ids = device_ids
+    ###=============================
     logging.info('Loading training data...')
     train_data_loader, train_data_size = get_train_data_loader(args=args)
     estimated_max_steps = args.epoch * ((train_data_size // args.batch_size) + 1)
@@ -195,8 +200,8 @@ def main(args):
         else:
             model, optimizer = get_check_point(args=args)
             model = model.to(device)
-        if device_ids is not None:
-            model = DataParallel(model, device_ids=device_ids, output_device=device)
+        if args.device_rank_ids is not None:
+            model = DataParallel(model, device_ids=args.device_rank_ids, output_device=device)
             logging.info('Data Parallel model setting')
         logging.info('Model Parameter Configuration:')
         for name, param in model.named_parameters():

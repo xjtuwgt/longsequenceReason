@@ -13,13 +13,10 @@ from multihopQA.qarun import parse_args, set_logger
 def main(args):
     if (not args.do_train) and (not args.do_valid) and (not args.do_test):
         raise ValueError('one of train/val/test mode must be choosed.')
-
     if args.data_path is None:
         raise ValueError('one of init_checkpoint/data_path must be choosed.')
-
     if args.do_train and args.save_path is None:
         raise ValueError('Where do you want to save your trained model?')
-
     if args.save_path and not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
 
@@ -29,7 +26,6 @@ def main(args):
     ########+++++++++++++++++++++++++++++
     # Write logs to checkpoint and console
     set_logger(args)
-
     if args.do_debug:
         if args.gpu_num > 1:
             device_ids, used_memory = gpu_setting(args.gpu_num)
@@ -68,6 +64,8 @@ def main(args):
         args.gpu_num = len(device_ids)
         args.world_size = len(device_ids)
 
+    args.device_rank_ids = device_ids
+
     logging.info('Available gpu number = {}, world_size = {}'.format(args.gpu_num, args.world_size))
 
     args.world_size = 2
@@ -83,7 +81,7 @@ def main(args):
     logging.info('Start training...')
     if args.do_train:
         logging.info('Start model training...')
-        run_train_and_dev(args=args)
+        # run_train_and_dev(args=args)
 
 if __name__ == '__main__':
     main(parse_args())
