@@ -9,12 +9,12 @@ abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
 from pandas import DataFrame
 from time import time
 import string
-import swifter
 from multihopUtils.longformerQAUtils import LongformerQATensorizer
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 import itertools
 import operator
+import swifter
 
 SPECIAL_QUERY_START = '<q>' ### for query marker
 SPECIAL_QUERY_END = '</q>' ### for query marker
