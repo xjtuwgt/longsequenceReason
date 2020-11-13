@@ -15,7 +15,7 @@ from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 import itertools
 import operator
 from pandarallel import pandarallel
-pandarallel.initialize()
+pandarallel.initialize(use_memory_fs=False)
 
 SPECIAL_QUERY_START = '<q>' ### for query marker
 SPECIAL_QUERY_END = '</q>' ### for query marker
