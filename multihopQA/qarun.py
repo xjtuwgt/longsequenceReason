@@ -140,6 +140,8 @@ def main(args):
                 device = torch.device('cuda:{}'.format(device_ids[0]))
             else:
                 device = torch.device('cuda:0')
+            for id in device_ids:
+                x=torch.device("cuda:%d" % id)
             logging.info('Set the cuda with idxes = {}'.format(device_ids))
             logging.info('cuda setting {}'.format(device))
         else:
