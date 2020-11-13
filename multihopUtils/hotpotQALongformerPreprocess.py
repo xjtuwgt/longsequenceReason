@@ -355,6 +355,7 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def row_encoder(row):
         norm_question, norm_ctxs = row['norm_query'], row['norm_ctx']
+        print('question {}'.format(norm_question))
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         query_encode_ids = query_encoder(query=norm_question, tokenizer=tokenizer)
         query_len = len(query_encode_ids)
