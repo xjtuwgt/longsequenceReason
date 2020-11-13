@@ -110,32 +110,32 @@ def get_model(args):
     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
     return model
 
-def get_check_point(args):
-    start_time = time()
-    tokenizer = get_hotpotqa_longformer_tokenizer(model_name=args.pretrained_cfg_name, do_lower_case=True)
-    longEncoder = LongformerEncoder.init_encoder(cfg_name=args.pretrained_cfg_name, projection_dim=args.project_dim,
-                                                 hidden_dropout=args.input_drop, attn_dropout=args.attn_drop,
-                                                 seq_project=args.seq_project)
-    longEncoder.resize_token_embeddings(len(tokenizer))
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    if args.frozen_layer_num > 0:
-        modules = [longEncoder.embeddings, *longEncoder.encoder.layer[:args.frozen_layer_num]]
-        for module in modules:
-            for param in module.parameters():
-                param.requires_grad = False
-        logging.info('Frozen the first {} layers'.format(args.frozen_layer_num))
-    logging.info('Loading encoder takes {:.4f}'.format(time() - start_time))
-    model = LongformerHotPotQAModel(longformer=longEncoder, num_labels=args.num_labels, args=args)
-    logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
+# def get_check_point(args):
+#     start_time = time()
+#     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=args.pretrained_cfg_name, do_lower_case=True)
+#     longEncoder = LongformerEncoder.init_encoder(cfg_name=args.pretrained_cfg_name, projection_dim=args.project_dim,
+#                                                  hidden_dropout=args.input_drop, attn_dropout=args.attn_drop,
+#                                                  seq_project=args.seq_project)
+#     longEncoder.resize_token_embeddings(len(tokenizer))
+#     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#     if args.frozen_layer_num > 0:
+#         modules = [longEncoder.embeddings, *longEncoder.encoder.layer[:args.frozen_layer_num]]
+#         for module in modules:
+#             for param in module.parameters():
+#                 param.requires_grad = False
+#         logging.info('Frozen the first {} layers'.format(args.frozen_layer_num))
+#     logging.info('Loading encoder takes {:.4f}'.format(time() - start_time))
+#     model = LongformerHotPotQAModel(longformer=longEncoder, num_labels=args.num_labels, args=args)
+#     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
+#
+#     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+#     model_path = args.save_path
+#     model_file_name = args.init_checkpoint
+#     hotpot_qa_model_name = os.path.join(model_path, model_file_name)
+#     model, optimizer, _, _, _ = load_check_point(model=model, optimizer=optimizer, PATH=hotpot_qa_model_name)
+#     return model, optimizer
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-    model_path = args.save_path
-    model_file_name = args.init_checkpoint
-    hotpot_qa_model_name = os.path.join(model_path, model_file_name)
-    model, optimizer, _, _, _ = load_check_point(model=model, optimizer=optimizer, PATH=hotpot_qa_model_name)
-    return model, optimizer
-
-def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, args):
+def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device, args):
     warm_up_steps = args.warm_up_steps
     start_time = time()
     step = 0
@@ -163,7 +163,7 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, args):
             logging.info('*' * 75)
             break
     logging.info('Evaluating on Valid Dataset...')
-    metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args)
+    metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, device=device, args=args)
     logging.info('*' * 75)
     logging.info('Answer type prediction accuracy: {}'.format(metric_dict['answer_type_acc']))
     logging.info('*' * 75)
@@ -173,11 +173,11 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, args):
             log_metrics('Valid', 'warm up', value)
         logging.info('*' * 75)
 
-def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, args):
+def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, args):
     assert args.save_checkpoint_steps % args.valid_steps == 0
     warm_up_steps = args.warm_up_steps
     if warm_up_steps > 0:
-        training_warm_up(model=model, optimizer=optimizer, train_dataloader=train_dataloader, dev_dataloader=dev_dataloader, args=args)
+        training_warm_up(model=model, optimizer=optimizer, train_dataloader=train_dataloader, device=device, dev_dataloader=dev_dataloader, args=args)
         logging.info('*' * 75)
         current_learning_rate = optimizer.param_groups[-1]['lr']
         # learning_rate = args.learning_rate * 0.5
@@ -215,7 +215,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, args):
             if args.do_valid and step % args.valid_steps == 0:
                 logging.info('*' * 75)
                 logging.info('Evaluating on Valid Dataset...')
-                metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args)
+                metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args, device=device)
                 logging.info('*' * 75)
                 answer_type_acc = metric_dict['answer_type_acc']
                 eval_metric = answer_type_acc
@@ -288,7 +288,7 @@ def train_single_step(model, optimizer, train_sample, args):
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++Test steps++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-def test_all_steps(model, test_data_loader, args):
+def test_all_steps(model, test_data_loader, device, args):
     '''
             Evaluate the reasonModel on test or valid datasets
     '''
@@ -314,7 +314,7 @@ def test_all_steps(model, test_data_loader, args):
             if args.cuda:
                 sample = dict()
                 for key, value in test_sample.items():
-                    sample[key] = value.cuda()
+                    sample[key] = value.to(device)
             else:
                 sample = test_sample
             output = model(sample)
