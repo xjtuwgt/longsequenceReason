@@ -208,8 +208,8 @@ def main(args):
         logging.info('projection_dim = {}'.format(args.project_dim))
         logging.info('learning_rate = {}'.format(args.learning_rate))
         logging.info('Start training...')
-        train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader,
-                        train_dataloader=train_data_loader, args=args)
+        # train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader,
+        #                 train_dataloader=train_data_loader, args=args)
         logging.info('Completed training in {:.4f} seconds'.format(time() - start_time))
         logging.info('Evaluating on Valid Dataset...')
         metric_dict = test_all_steps(model=model, test_data_loader=dev_data_loader, args=args)
