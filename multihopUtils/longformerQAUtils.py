@@ -181,33 +181,33 @@ class LongformerEncoder(LongformerModel):
             return self.encode_proj.out_features
         return self.config.hidden_size
 
-if __name__ == '__main__':
-    tokenizer = LongformerTokenizer.from_pretrained(PRE_TAINED_LONFORMER_BASE, do_lower_case=True)
-
-    x = '"spawn of the north"'
-    y = 'sent  it is a remake of the 1938 film "spawn of the north".'
-
-    print(tokenizer.encode(x, add_special_tokens=False))
-    print(tokenizer.encode(y, add_special_tokens=False))
-    # print(len(tokenizer))
-    #
-    # special_tokens_dict = {'additional_special_tokens': ['[C1]', '[C2]', '[C3]', '[C4]']}
-    # num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
-    # tokenizer = get_hotpotqa_longformer_tokenizer()
-    #
-    # tokenierLongformer = LongformerQATensorizer(tokenizer=tokenizer, max_length=4096)
-    #
-    # x = '<q>hello world'
-    # xids = tokenierLongformer.text_encode(x, add_special_tokens=False)
-    # print(tokenizer.decode(xids))
-    #
-    # # tokenizer.add_special_tokens({'additional_special_tokens':})
-    # print(tokenizer.special_tokens_map)
-    # print(tokenizer.additional_special_tokens)
-    # prompt = "In Italy, pizza served in formal settings, such as at a restaurant, is presented unsliced."
-    # choice0 = "It is eaten with a fork and a knife."
-    # choice1 = "It is eaten while held in the hand."
-    # encoding = tokenizer([[prompt, prompt], [choice0, choice1]], return_tensors='pt', padding=True)
-    #
-    # print(tokenizer.decode(encoding['input_ids'][1]))
-    print()
+# if __name__ == '__main__':
+#     tokenizer = LongformerTokenizer.from_pretrained(PRE_TAINED_LONFORMER_BASE, do_lower_case=True)
+#
+#     x = '"spawn of the north"'
+#     y = 'sent  it is a remake of the 1938 film "spawn of the north".'
+#
+#     print(tokenizer.encode(x, add_special_tokens=False))
+#     print(tokenizer.encode(y, add_special_tokens=False))
+#     # print(len(tokenizer))
+#     #
+#     # special_tokens_dict = {'additional_special_tokens': ['[C1]', '[C2]', '[C3]', '[C4]']}
+#     # num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
+#     # tokenizer = get_hotpotqa_longformer_tokenizer()
+#     #
+#     # tokenierLongformer = LongformerQATensorizer(tokenizer=tokenizer, max_length=4096)
+#     #
+#     # x = '<q>hello world'
+#     # xids = tokenierLongformer.text_encode(x, add_special_tokens=False)
+#     # print(tokenizer.decode(xids))
+#     #
+#     # # tokenizer.add_special_tokens({'additional_special_tokens':})
+#     # print(tokenizer.special_tokens_map)
+#     # print(tokenizer.additional_special_tokens)
+#     # prompt = "In Italy, pizza served in formal settings, such as at a restaurant, is presented unsliced."
+#     # choice0 = "It is eaten with a fork and a knife."
+#     # choice1 = "It is eaten while held in the hand."
+#     # encoding = tokenizer([[prompt, prompt], [choice0, choice1]], return_tensors='pt', padding=True)
+#     #
+#     # print(tokenizer.decode(encoding['input_ids'][1]))
+#     print()
