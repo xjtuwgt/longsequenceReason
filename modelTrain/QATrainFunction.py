@@ -110,30 +110,30 @@ def get_model(args):
     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
     return model
 
-# def get_check_point(args):
-#     start_time = time()
-#     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=args.pretrained_cfg_name, do_lower_case=True)
-#     longEncoder = LongformerEncoder.init_encoder(cfg_name=args.pretrained_cfg_name, projection_dim=args.project_dim,
-#                                                  hidden_dropout=args.input_drop, attn_dropout=args.attn_drop,
-#                                                  seq_project=args.seq_project)
-#     longEncoder.resize_token_embeddings(len(tokenizer))
-#     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#     if args.frozen_layer_num > 0:
-#         modules = [longEncoder.embeddings, *longEncoder.encoder.layer[:args.frozen_layer_num]]
-#         for module in modules:
-#             for param in module.parameters():
-#                 param.requires_grad = False
-#         logging.info('Frozen the first {} layers'.format(args.frozen_layer_num))
-#     logging.info('Loading encoder takes {:.4f}'.format(time() - start_time))
-#     model = LongformerHotPotQAModel(longformer=longEncoder, num_labels=args.num_labels, args=args)
-#     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
-#
-#     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-#     model_path = args.save_path
-#     model_file_name = args.init_checkpoint
-#     hotpot_qa_model_name = os.path.join(model_path, model_file_name)
-#     model, optimizer, _, _, _ = load_check_point(model=model, optimizer=optimizer, PATH=hotpot_qa_model_name)
-#     return model, optimizer
+def get_check_point(args):
+    start_time = time()
+    tokenizer = get_hotpotqa_longformer_tokenizer(model_name=args.pretrained_cfg_name, do_lower_case=True)
+    longEncoder = LongformerEncoder.init_encoder(cfg_name=args.pretrained_cfg_name, projection_dim=args.project_dim,
+                                                 hidden_dropout=args.input_drop, attn_dropout=args.attn_drop,
+                                                 seq_project=args.seq_project)
+    longEncoder.resize_token_embeddings(len(tokenizer))
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    if args.frozen_layer_num > 0:
+        modules = [longEncoder.embeddings, *longEncoder.encoder.layer[:args.frozen_layer_num]]
+        for module in modules:
+            for param in module.parameters():
+                param.requires_grad = False
+        logging.info('Frozen the first {} layers'.format(args.frozen_layer_num))
+    logging.info('Loading encoder takes {:.4f}'.format(time() - start_time))
+    model = LongformerHotPotQAModel(longformer=longEncoder, num_labels=args.num_labels, args=args)
+    logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+    model_path = args.save_path
+    model_file_name = args.init_checkpoint
+    hotpot_qa_model_name = os.path.join(model_path, model_file_name)
+    # model, optimizer, _, _, _ = load_check_point(model=model, optimizer=optimizer, PATH=hotpot_qa_model_name)
+    return model, optimizer
 
 def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device, args):
     warm_up_steps = args.warm_up_steps
