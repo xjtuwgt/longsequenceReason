@@ -14,6 +14,8 @@ from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 import itertools
 import operator
+# from pandarallel import pandarallel
+# pandarallel.initialize(nb_workers=4)
 import swifter
 
 SPECIAL_QUERY_START = '<q>' ### for query marker
@@ -248,7 +250,7 @@ def Hotpot_Dev_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensorize
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['norm_query', 'norm_answer', 'p_ctx', 'n_ctx', 'supp_facts_filtered', 'p_doc_type', 'p_doc_num',
-          'n_doc_num', 'yes_no', 'no_found']] = data.parallel_apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
+          'n_doc_num', 'yes_no', 'no_found']] = data.swifter.apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
     not_found_num = data[data['no_found']].shape[0]
     print('Splitting positive samples from negative samples takes {:.4f} seconds, answer not found = {}'.format(time() - start_time, not_found_num))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -462,6 +464,7 @@ def hotpotqa_preprocess_example():
     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=PRE_TAINED_LONFORMER_BASE)
     longformer_tokenizer = LongformerQATensorizer(tokenizer=tokenizer, max_length=-1)
     dev_data, _ = HOTPOT_DevData_Distractor()
+    print('*' * 75)
     dev_test_data = Hotpot_Test_Data_PreProcess(data=dev_data, tokenizer=longformer_tokenizer)
     print('Get {} dev-test records'.format(dev_test_data.shape[0]))
     dev_test_data.to_json(os.path.join(abs_distractor_wiki_path, 'hotpot_test_distractor_wiki_tokenized.json'))
