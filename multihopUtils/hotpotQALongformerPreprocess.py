@@ -3,19 +3,19 @@ import sys
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor, HOTPOT_TrainData
+from multihopUtils.hotpotqaIOUtils import *
+distractor_wiki_path = '../data/hotpotqa/distractor_qa'
+abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
+from pandas import DataFrame
+from time import time
+import string
 from multihopUtils.longformerQAUtils import LongformerQATensorizer
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
-distractor_wiki_path = '../data/hotpotqa/distractor_qa'
-abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
-print('Preprocess data path = {}'.format(abs_distractor_wiki_path))
-from pandas import DataFrame
-import pandas as pd
-from time import time
-import string
 import itertools
 import operator
+from pandarallel import pandarallel
+pandarallel.initialize()
 
 SPECIAL_QUERY_START = '<q>' ### for query marker
 SPECIAL_QUERY_END = '</q>' ### for query marker
@@ -97,7 +97,7 @@ def Hotpot_Train_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensori
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['norm_query', 'norm_answer', 'p_ctx', 'n_ctx', 'supp_facts_filtered', 'p_doc_type', 'p_doc_num',
-          'n_doc_num', 'yes_no', 'no_found']] = data.apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
+          'n_doc_num', 'yes_no', 'no_found']] = data.parallel_apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
     not_found_num = data[data['no_found']].shape[0]
     print('Splitting positive samples from negative samples takes {:.4f} seconds, answer not found = {}'.format(time() - start_time, not_found_num))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -169,7 +169,7 @@ def Hotpot_Train_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensori
     start_time = time()
     data[['ques_encode', 'ques_len', 'answer_encode', 'answer_len', 'p_ctx_encode', 'p_ctx_lens', 'pc_max_len',
           'n_ctx_encode', 'n_ctx_lens', 'nc_max_len']] = \
-        data.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.parallel_apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
     print('Number of data = {}'.format(data.shape))
     return data
@@ -249,7 +249,7 @@ def Hotpot_Dev_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensorize
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['norm_query', 'norm_answer', 'p_ctx', 'n_ctx', 'supp_facts_filtered', 'p_doc_type', 'p_doc_num',
-          'n_doc_num', 'yes_no', 'no_found']] = data.apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
+          'n_doc_num', 'yes_no', 'no_found']] = data.parallel_apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
     not_found_num = data[data['no_found']].shape[0]
     print('Splitting positive samples from negative samples takes {:.4f} seconds, answer not found = {}'.format(time() - start_time, not_found_num))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -321,7 +321,7 @@ def Hotpot_Dev_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensorize
     start_time = time()
     data[['ques_encode', 'ques_len', 'answer_encode', 'answer_len', 'p_ctx_encode', 'p_ctx_lens', 'pc_max_len',
           'n_ctx_encode', 'n_ctx_lens', 'nc_max_len']] = \
-        data.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.parallel_apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
     print('Number of data = {}'.format(data.shape))
     return data
@@ -349,16 +349,14 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
         return norm_question, hotpot_ctxs
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
-    data[['norm_query', 'norm_ctx']] = data.apply(lambda row: pd.Series(norm_context(row)), axis=1)
+    data[['norm_query', 'norm_ctx']] = data.parallel_apply(lambda row: pd.Series(norm_context(row)), axis=1)
     print('Normalizing samples takes {:.4f} seconds'.format(time() - start_time))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def row_encoder(row):
         norm_question, norm_ctxs = row['norm_query'], row['norm_ctx']
-        # print('question {}'.format(norm_question))
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         query_encode_ids = query_encoder(query=norm_question, tokenizer=tokenizer)
         query_len = len(query_encode_ids)
-        # print('query len {}'.format(query_len))
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         ctx_encode_ids = []
         max_doc_len = 0
@@ -380,7 +378,7 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['ques_encode', 'ques_len', 'ctx_encode', 'ctx_lens', 'ctx_max_len']] = \
-        data.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.parallel_apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
     print('Number of data = {}'.format(data.shape))
     return data
@@ -465,7 +463,6 @@ def hotpotqa_preprocess_example():
     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=PRE_TAINED_LONFORMER_BASE)
     longformer_tokenizer = LongformerQATensorizer(tokenizer=tokenizer, max_length=-1)
     dev_data, _ = HOTPOT_DevData_Distractor()
-    print('*' * 75)
     dev_test_data = Hotpot_Test_Data_PreProcess(data=dev_data, tokenizer=longformer_tokenizer)
     print('Get {} dev-test records'.format(dev_test_data.shape[0]))
     dev_test_data.to_json(os.path.join(abs_distractor_wiki_path, 'hotpot_test_distractor_wiki_tokenized.json'))
