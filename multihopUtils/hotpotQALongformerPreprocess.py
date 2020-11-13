@@ -3,9 +3,10 @@ import sys
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-from multihopUtils.hotpotqaIOUtils import *
+from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor, HOTPOT_TrainData
 distractor_wiki_path = '../data/hotpotqa/distractor_qa'
 abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
+print('Orignal data path = {}'.format(abs_distractor_wiki_path))
 from pandas import DataFrame
 from time import time
 import string

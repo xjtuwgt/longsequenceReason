@@ -12,6 +12,8 @@ from torch.optim import Adam
 from time import time
 
 hotpot_path = '../data/hotpotqa/'
+hotpot_path = os.path.abspath(hotpot_path)
+print('Orignal data path = {}'.format(hotpot_path))
 hotpot_train_data = 'hotpot_train_v1.1.json'  # _id;answer;question;supporting_facts;context;type;level
 hotpot_dev_fullwiki = 'hotpot_dev_fullwiki_v1.json'  # _id;answer;question;supporting_facts;context;type;level
 hotpot_test_fullwiki = 'hotpot_test_fullwiki_v1.json'  # _id; question; context
