@@ -16,7 +16,6 @@ from time import time
 import string
 import itertools
 import operator
-import swifter
 
 SPECIAL_QUERY_START = '<q>' ### for query marker
 SPECIAL_QUERY_END = '</q>' ### for query marker
