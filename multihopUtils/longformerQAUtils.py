@@ -10,6 +10,7 @@ from torch import nn
 import torch
 from transformers.configuration_longformer import LongformerConfig
 PRE_TAINED_LONFORMER_BASE = 'allenai/longformer-base-4096'
+FINE_TUNED_SQUADV_MODEL_NAME = 'valhalla/longformer-base-4096-finetuned-squadv1'
 
 class QATensorizer(object):
     """
