@@ -8,6 +8,7 @@ distractor_wiki_path = '../data/hotpotqa/distractor_qa'
 abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
 print('Orignal data path = {}'.format(abs_distractor_wiki_path))
 from pandas import DataFrame
+import pandas as pd
 from time import time
 import string
 from multihopUtils.longformerQAUtils import LongformerQATensorizer
