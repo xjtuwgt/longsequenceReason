@@ -14,8 +14,7 @@ from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 import itertools
 import operator
-from pandarallel import pandarallel
-pandarallel.initialize(use_memory_fs=False)
+import swifter
 
 SPECIAL_QUERY_START = '<q>' ### for query marker
 SPECIAL_QUERY_END = '</q>' ### for query marker
@@ -97,7 +96,7 @@ def Hotpot_Train_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensori
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['norm_query', 'norm_answer', 'p_ctx', 'n_ctx', 'supp_facts_filtered', 'p_doc_type', 'p_doc_num',
-          'n_doc_num', 'yes_no', 'no_found']] = data.parallel_apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
+          'n_doc_num', 'yes_no', 'no_found']] = data.swifter.apply(lambda row: pd.Series(pos_neg_context_split(row)), axis=1)
     not_found_num = data[data['no_found']].shape[0]
     print('Splitting positive samples from negative samples takes {:.4f} seconds, answer not found = {}'.format(time() - start_time, not_found_num))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -169,9 +168,9 @@ def Hotpot_Train_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensori
     start_time = time()
     data[['ques_encode', 'ques_len', 'answer_encode', 'answer_len', 'p_ctx_encode', 'p_ctx_lens', 'pc_max_len',
           'n_ctx_encode', 'n_ctx_lens', 'nc_max_len']] = \
-        data.parallel_apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.swifter.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
-    print('Number of data = {}'.format(data.shape))
+    print('Number of data be processed = {}'.format(data.shape))
     return data
 
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -321,9 +320,9 @@ def Hotpot_Dev_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensorize
     start_time = time()
     data[['ques_encode', 'ques_len', 'answer_encode', 'answer_len', 'p_ctx_encode', 'p_ctx_lens', 'pc_max_len',
           'n_ctx_encode', 'n_ctx_lens', 'nc_max_len']] = \
-        data.parallel_apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.swifter.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
-    print('Number of data = {}'.format(data.shape))
+    print('Number of data be processed = {}'.format(data.shape))
     return data
 
 #########+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -349,7 +348,7 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
         return norm_question, hotpot_ctxs
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
-    data[['norm_query', 'norm_ctx']] = data.parallel_apply(lambda row: pd.Series(norm_context(row)), axis=1)
+    data[['norm_query', 'norm_ctx']] = data.swifter.apply(lambda row: pd.Series(norm_context(row)), axis=1)
     print('Normalizing samples takes {:.4f} seconds'.format(time() - start_time))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def row_encoder(row):
@@ -378,9 +377,9 @@ def Hotpot_Test_Data_PreProcess(data: DataFrame, tokenizer: LongformerQATensoriz
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     start_time = time()
     data[['ques_encode', 'ques_len', 'ctx_encode', 'ctx_lens', 'ctx_max_len']] = \
-        data.parallel_apply(lambda row: pd.Series(row_encoder(row)), axis=1)
+        data.swifter.apply(lambda row: pd.Series(row_encoder(row)), axis=1)
     print('Tokenizing takes {:.4f} seconds'.format(time() - start_time))
-    print('Number of data = {}'.format(data.shape))
+    print('Number of data be processed = {}'.format(data.shape))
     return data
 #########+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #########+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

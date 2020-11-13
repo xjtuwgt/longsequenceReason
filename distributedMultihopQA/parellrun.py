@@ -81,7 +81,7 @@ def main(args):
     logging.info('Start training...')
     if args.do_train:
         logging.info('Start model training...')
-        # run_train_and_dev(args=args)
+        run_train_and_dev(args=args)
 
 if __name__ == '__main__':
     main(parse_args())
