@@ -16,10 +16,10 @@ import pandas as pd
 from time import time
 from torch.utils.data import DataLoader
 from pandas import DataFrame
-from multihopr.gpu_utils import set_seeds
-from multihopQA.hotpotQAdataloader import HotpotDataset
-from multihopQA.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
-from multihopQA.UnifiedQAModel import LongformerHotPotQAModel
+from multihopUtils.gpu_utils import set_seeds
+from multihopQA.hotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
+from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
+from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from datetime import date, datetime
 from torch import Tensor as T
 
@@ -60,14 +60,13 @@ def load_train_data(rank, args) -> (DataLoader, DistributedSampler, int):
     num_replicas = args.world_size
     tokenizer = LongformerTokenizer.from_pretrained(args.pretrained_cfg_name, do_lower_case=True)
     hotpot_tensorizer = LongformerQATensorizer(tokenizer=tokenizer, max_length=args.max_ctx_len)
-    dataset = HotpotDataset(data_frame=data_frame, hotpot_tensorizer=hotpot_tensorizer,
-                      pad_neg_doc_num=args.pad_neg_samp_size,
-                      max_sent_num=args.max_sent_num, training=True)
+    dataset = HotpotTrainDataset(data_frame=data_frame, hotpot_tensorizer=hotpot_tensorizer,
+                      max_sent_num=args.max_sent_num)
     batch_size = args.batch_size // num_replicas
     logging.info('Each node batch size = {}'.format(batch_size))
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset=dataset, rank=rank, num_replicas=num_replicas)
     train_dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=max(1, args.cpu_num // 2),
-                                  collate_fn=HotpotDataset.collate_fn,
+                                  collate_fn=HotpotTrainDataset.collate_fn,
                                   shuffle=False,
                                   pin_memory=True,
                                   sampler=train_sampler)
@@ -77,11 +76,10 @@ def load_dev_data(args) -> DataLoader:
     data_frame = read_train_dev_data_frame(file_path=args.data_path, json_fileName=args.dev_data_name)
     tokenizer = LongformerTokenizer.from_pretrained(args.pretrained_cfg_name, do_lower_case=True)
     hotpot_tensorizer = LongformerQATensorizer(tokenizer=tokenizer, max_length=args.max_ctx_len)
-    dataset = HotpotDataset(data_frame=data_frame, hotpot_tensorizer=hotpot_tensorizer,
-                      pad_neg_doc_num=args.pad_neg_samp_size, training_shuffle=False,
-                      max_sent_num=args.max_sent_num, training=False)
+    dataset = HotpotDevDataset(data_frame=data_frame, hotpot_tensorizer=hotpot_tensorizer,
+                      max_sent_num=args.max_sent_num)
     dev_dataloader = DataLoader(dataset=dataset, batch_size=args.test_batch_size, num_workers=max(1, args.cpu_num // 2),
-                                  collate_fn=HotpotDataset.collate_fn,
+                                  collate_fn=HotpotDevDataset.collate_fn,
                                   shuffle=False,
                                   pin_memory=True)
     return dev_dataloader
