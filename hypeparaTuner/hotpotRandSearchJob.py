@@ -22,7 +22,7 @@ def HypeParameterSpace():
     feat_drop = {'name': 'fea_drop', 'type': 'choice', 'values': [0.1]}
     att_drop = {'name': 'att_drop', 'type': 'choice', 'values': [0.1]} #0.1
     project_dim = {'name': 'project_dim', 'type': 'choice', 'values': [256]}
-    batch_size = {'name': 'batch_size', 'type': 'fixed', 'value': 4}
+    batch_size = {'name': 'batch_size', 'type': 'fixed', 'value': 8}
     max_doc_num = {'name': 'max_doc_num', 'type': 'fixed', 'value': 10}
     sent_threshold = {'name': 'sent_threshold', 'type': 'choice', 'values': [0.925, 0.95]}
     ir_name = {'name': 'score_model_name', 'type': 'choice', 'values': ['MLP']}
