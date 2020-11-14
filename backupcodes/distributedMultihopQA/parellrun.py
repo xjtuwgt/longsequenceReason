@@ -7,7 +7,7 @@ import logging
 import os
 import torch
 from multihopUtils.gpu_utils import gpu_setting
-from distributedMultihopQA.parQATrainFunction import run_train_and_dev
+from backupcodes.distributedMultihopQA import run_train_and_dev
 from multihopQA.qarun import parse_args, set_logger
 
 def main(args):
