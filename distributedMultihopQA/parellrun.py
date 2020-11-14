@@ -64,8 +64,6 @@ def main(args):
         args.gpu_num = len(device_ids)
         args.world_size = len(device_ids)
 
-    args.device_rank_ids = device_ids
-
     logging.info('Available gpu number = {}, world_size = {}'.format(args.gpu_num, args.world_size))
 
     args.world_size = 2
