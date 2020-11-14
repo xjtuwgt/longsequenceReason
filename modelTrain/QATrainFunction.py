@@ -201,6 +201,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
             # ##+++++++++++++++++++++++++++++++++++++++++++++++
             step = step + 1
             training_logs.append(log)
+            torch.cuda.empty_cache()
             # ##+++++++++++++++++++++++++++++++++++++++++++++++
             if epoch_id == args.epoch // 2 + 1:
                 current_learning_rate = optimizer.param_groups[-1]['lr']
