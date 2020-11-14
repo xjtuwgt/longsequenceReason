@@ -35,8 +35,6 @@ def get_multi_free_gpu():
     gpu_df['memory_used'] = gpu_df['memory.used'].apply(lambda x: float(x.rstrip(' [MiB]')))
     idx = gpu_df['memory_free'].argmax()
     used_memory = gpu_df.iloc[idx]['memory_used']
-    if used_memory < 1000:
-        used_memory = 1000
     free_idxs = []
     for idx, row in gpu_df.iterrows():
         if row['memory_used'] <= used_memory:
