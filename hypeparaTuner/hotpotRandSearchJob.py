@@ -22,7 +22,7 @@ def HypeParameterSpace():
     feat_drop = {'name': 'fea_drop', 'type': 'choice', 'values': [0.1]}
     att_drop = {'name': 'att_drop', 'type': 'choice', 'values': [0.1]} #0.1
     project_dim = {'name': 'project_dim', 'type': 'choice', 'values': [256]}
-    batch_size = {'name': 'batch_size', 'type': 'fixed', 'value': 8}
+    batch_size = {'name': 'batch_size', 'type': 'fixed', 'value': 4}
     max_doc_num = {'name': 'max_doc_num', 'type': 'fixed', 'value': 10}
     sent_threshold = {'name': 'sent_threshold', 'type': 'choice', 'values': [0.925, 0.95]}
     ir_name = {'name': 'score_model_name', 'type': 'choice', 'values': ['MLP']}
@@ -30,9 +30,9 @@ def HypeParameterSpace():
     task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc', 'doc_sent']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc_sent']} #'query', 'query_doc', 'query_doc_sent'
-    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [5]} #1, 2
+    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [0]} #1, 2
     span_weight = {'name': 'span_weight', 'type': 'choice', 'values': [0.1, 0.2, 0.5]}
-    pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [1.0]} #0.1, 0.2, 0.5, 1.0
+    pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [0, 1.0]} #0.1, 0.2, 0.5, 1.0
     train_data_filtered = {'name': 'train_data', 'type': 'choice', 'values': [0]} # 0, 1, 2
     train_data_shuffler = {'name': 'train_shuffle', 'type': 'choice', 'values': [0]} # 0, 1
     with_graph = {'name': 'with_graph', 'type': 'choice', 'values': [0]} # 0, 1
