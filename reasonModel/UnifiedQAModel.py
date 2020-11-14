@@ -208,10 +208,10 @@ class LongformerHotPotQAModel(nn.Module):
         batch_idx = torch.arange(0, batch_size).view(batch_size, 1).repeat(1, doc_num).to(sequence_output.device)
         doc_embed = sequence_output[batch_idx, doc_position]
         if self.with_graph:
-            ##+++++++++++++++
-            sent_embed = self.transformer_layer.forward(query=sent_embed, key=sent_embed, value=sent_embed,
-                                                        x_mask=sent_sent_mask)
-            ##+++++++++++++++
+            # ##+++++++++++++++
+            # sent_embed = self.transformer_layer.forward(query=sent_embed, key=sent_embed, value=sent_embed,
+            #                                             x_mask=sent_sent_mask)
+            # ##+++++++++++++++
             doc_embed = self.transformer_layer.forward(query=doc_embed, key=sent_embed, value=sent_embed, x_mask=doc_sent_mask)
         ##++++++++++++++++++++++++++++++++++++
         #####++++++++++++++++++++
