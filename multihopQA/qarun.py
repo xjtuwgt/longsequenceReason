@@ -44,7 +44,7 @@ def parse_args(args=None):
     parser.add_argument('--hop_model_name', default='DotProduct', type=str)  # 'DotProduct', 'BiLinear'
     parser.add_argument('--frozen_layer_num', default=0, type=int, help='number of layers for document encoder frozen during training')
     parser.add_argument('--project_dim', default=256, type=int)
-    parser.add_argument('--global_mask_type', default='query_doc', type=str) ## query, query_doc, query_doc_sent
+    parser.add_argument('--global_mask_type', default='query_doc_sent', type=str) ## query, query_doc, query_doc_sent
     parser.add_argument('--training_shuffle', default=0, type=int)  ## whether re-order training data
     parser.add_argument('--sent_threshold', default=0.9, type=float)
     parser.add_argument('--doc_threshold', default=0.9, type=float)
