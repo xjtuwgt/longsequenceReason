@@ -30,7 +30,7 @@ def HypeParameterSpace():
     task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc', 'doc_sent']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc']} #'query', 'query_doc', 'query_doc_sent'
-    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [3]} #1, 2
+    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [4]} #1, 2
     span_weight = {'name': 'span_weight', 'type': 'choice', 'values': [0.1, 0.2, 0.5]}
     pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [0, 1.0]} #0.1, 0.2, 0.5, 1.0
     train_data_filtered = {'name': 'train_data', 'type': 'choice', 'values': [0]} # 0, 1, 2
