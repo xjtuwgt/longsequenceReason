@@ -32,6 +32,7 @@ PAIR_SCORE_WEIGHT=${19}
 WITH_GRAPH=${20}
 WITH_GRAPH_TRAIN=${21}
 TASK_NAME=${22}
+PRE_TRAIN=${23}
 
 echo "Start Training......"
 
@@ -59,4 +60,5 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python -u $CODE_PATH/qarun.py --do_train \
     --pair_score_weight $PAIR_SCORE_WEIGHT\
     --with_graph $WITH_GRAPH\
     --with_graph_training $WITH_GRAPH_TRAIN\
-    --task $TASK_NAME
+    --task $TASK_NAME\
+    --pretrained_cfg_flag $PRE_TRAIN
