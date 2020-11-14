@@ -17,7 +17,7 @@ def remove_all_files(dirpath):
             os.remove(filepath)
 
 def HypeParameterSpace():
-    learning_rate = {'name': 'learning_rate', 'type': 'choice', 'values': [2e-5, 4e-5]}
+    learning_rate = {'name': 'learning_rate', 'type': 'choice', 'values': [2e-5, 3e-5, 4e-5, 5e-5]}
     adam_weight_decay = {'name': 'adam_weight_decay', 'type': 'fixed', 'value': 1e-6}
     feat_drop = {'name': 'fea_drop', 'type': 'choice', 'values': [0.1]}
     att_drop = {'name': 'att_drop', 'type': 'choice', 'values': [0.1]} #0.1
@@ -30,7 +30,7 @@ def HypeParameterSpace():
     task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc', 'doc_sent']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc']} #'query', 'query_doc', 'query_doc_sent'
-    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [5]} #1, 2
+    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [5, 6]} #1, 2
     span_weight = {'name': 'span_weight', 'type': 'choice', 'values': [0.1, 0.2, 0.5]}
     pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [0, 1.0]} #0.1, 0.2, 0.5, 1.0
     train_data_filtered = {'name': 'train_data', 'type': 'choice', 'values': [0]} # 0, 1, 2
