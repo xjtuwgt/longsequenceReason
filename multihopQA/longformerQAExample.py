@@ -10,14 +10,15 @@ import torch
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 
 TRIVIAQA_MODEL_NAME_LARGE = 'allenai/longformer-large-4096-finetuned-triviaqa'
-SQUADV_MODEL_NAME = 'valhalla/longformer-base-4096-finetuned-squadv1'
+SQUADV1_MODEL_NAME = 'valhalla/longformer-base-4096-finetuned-squadv1'
+SQUADV2_MODEL_NAME = 'mrm8488/longformer-base-4096-finetuned-squadv2'
 
-def load_question_answer_model(qa_model_name: str=SQUADV_MODEL_NAME, return_dict=True):
+def load_question_answer_model(qa_model_name: str=SQUADV1_MODEL_NAME, return_dict=True):
     model = LongformerForQuestionAnswering.from_pretrained(pretrained_model_name_or_path=qa_model_name, return_dict=return_dict)
     return model
 
 if __name__ == '__main__':
-    model_name = SQUADV_MODEL_NAME
+    model_name = SQUADV2_MODEL_NAME
     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=model_name)
     model = load_question_answer_model(qa_model_name=model_name)
     model.resize_token_embeddings(len(tokenizer))
