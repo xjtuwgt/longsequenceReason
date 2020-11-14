@@ -145,6 +145,7 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device,
     #########
     model.train()
     model.zero_grad()
+    all_step_num = len(train_dataloader)
     #########
     for batch_idx, train_sample in enumerate(train_dataloader):
         log = train_single_step(model=model, optimizer=optimizer, train_sample=train_sample, args=args)
@@ -155,7 +156,7 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device,
             for metric in training_logs[0].keys():
                 metrics[metric] = sum([log[metric] for log in training_logs]) / len(training_logs)
             log_metrics('Training average', step, metrics)
-            logging.info('Training in {} ({}, {}) steps takes {:.4f} seconds'.format(step, 'warm_up', batch_idx + 1,
+            logging.info('Training in {}/{} ({}, {}) steps takes {:.4f} seconds'.format(step, all_step_num, 'warm_up', batch_idx + 1,
                                                                                      time() - start_time))
             training_logs = []
         if step >= warm_up_steps:
@@ -191,6 +192,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
     max_sent_pred_f1 = 0.0
     step = 0
     training_logs = []
+    all_step_num = len(train_dataloader)
     for epoch in range(1, args.epoch + 1):
         for batch_idx, train_sample in enumerate(train_dataloader):
             log = train_single_step(model=model, optimizer=optimizer, train_sample=train_sample, args=args)
@@ -209,7 +211,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
                     metrics[metric] = sum([log[metric] for log in training_logs]) / len(training_logs)
                 log_metrics('Training average', step, metrics)
                 train_loss = metrics['al_loss']
-                logging.info('Training in {} ({}, {}) steps takes {:.4f} seconds'.format(step, epoch, batch_idx + 1, time() - start_time))
+                logging.info('Training in {} ({}, {}/{}) steps takes {:.4f} seconds'.format(step, epoch, batch_idx + 1, all_step_num, time() - start_time))
                 training_logs = []
 
             if args.do_valid and step % args.valid_steps == 0:
