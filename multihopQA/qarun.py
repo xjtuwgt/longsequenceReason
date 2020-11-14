@@ -200,9 +200,9 @@ def main(args):
         else:
             model, optimizer = get_check_point(args=args)
             model = model.to(device)
-        if args.device_rank_ids is not None:
-            if len(args.device_rank_ids) > 1:
-                model = DataParallel(model, device_ids=args.device_rank_ids, output_device=device)
+        if device_ids is not None:
+            if len(device_ids) > 1:
+                model = DataParallel(model, device_ids=device_ids, output_device=device)
                 logging.info('Data Parallel model setting')
         logging.info('Model Parameter Configuration:')
         for name, param in model.named_parameters():
