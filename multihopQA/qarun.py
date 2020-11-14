@@ -81,8 +81,6 @@ def parse_args(args=None):
     parser.add_argument('--test_log_steps', default=10, type=int, help='valid/test log every xx steps')
     parser.add_argument('--rand_seed', default=12345, type=int, help='random seed')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    parser.add_argument('--device_rank_ids', default=None, type=list)
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
 
 def set_logger(args):
@@ -142,8 +140,6 @@ def main(args):
                 device = torch.device('cuda:{}'.format(device_ids[0]))
             else:
                 device = torch.device('cuda:0')
-            for id in device_ids:
-                x=torch.device("cuda:%d" % id)
             logging.info('Set the cuda with idxes = {}'.format(device_ids))
             logging.info('cuda setting {}'.format(device))
         else:
@@ -172,9 +168,6 @@ def main(args):
         device_ids = None
         logging.info('CPU setting')
 
-    ###=============================
-    args.device_rank_ids = device_ids
-    ###=============================
     logging.info('Loading training data...')
     train_data_loader, train_data_size = get_train_data_loader(args=args)
     estimated_max_steps = args.epoch * ((train_data_size // args.batch_size) + 1)
