@@ -17,7 +17,7 @@ def load_question_answer_model(qa_model_name: str=SQUADV_MODEL_NAME, return_dict
     return model
 
 if __name__ == '__main__':
-    model_name = TRIVIAQA_MODEL_NAME_LARGE
+    model_name = SQUADV_MODEL_NAME
     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=model_name)
     model = load_question_answer_model(qa_model_name=model_name)
     model.resize_token_embeddings(len(tokenizer))

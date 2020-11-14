@@ -33,7 +33,7 @@ def parse_args(args=None):
     parser.add_argument('--train_data_name', type=str, default='hotpot_train_distractor_wiki_tokenized.json')
     parser.add_argument('--train_data_filtered', type=int, default=0)
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
-    parser.add_argument('--pretrained_cfg_flag', default=1, type=int)
+    parser.add_argument('--pretrained_cfg_flag', default=0, type=int)
     parser.add_argument('--pretrained_cfg_name', default=PRE_TAINED_LONFORMER_BASE, type=str)
     parser.add_argument('--gpu_num', default=4, type=int)
     parser.add_argument('--test_batch_size', default=64, type=int, help='valid/test batch size')
