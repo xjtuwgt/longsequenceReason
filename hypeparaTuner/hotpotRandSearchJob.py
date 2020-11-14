@@ -16,7 +16,7 @@ def remove_all_files(dirpath):
             os.remove(filepath)
 
 def HypeParameterSpace():
-    learning_rate = {'name': 'learning_rate', 'type': 'choice', 'values': [4e-5, 5e-5, 1e-5]}
+    learning_rate = {'name': 'learning_rate', 'type': 'choice', 'values': [2e-5, 4e-5]}
     adam_weight_decay = {'name': 'adam_weight_decay', 'type': 'fixed', 'value': 1e-6}
     feat_drop = {'name': 'fea_drop', 'type': 'choice', 'values': [0.1]}
     att_drop = {'name': 'att_drop', 'type': 'choice', 'values': [0.1]} #0.1
@@ -25,7 +25,7 @@ def HypeParameterSpace():
     max_doc_num = {'name': 'max_doc_num', 'type': 'fixed', 'value': 10}
     sent_threshold = {'name': 'sent_threshold', 'type': 'choice', 'values': [0.925, 0.95]}
     ir_name = {'name': 'score_model_name', 'type': 'choice', 'values': ['MLP']}
-    task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc_sent', 'doc_sent_ans']} ## doc, doc_sent, doc_sent_ans
+    task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc', 'doc_sent', 'doc_sent_ans']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc_sent']} #'query', 'query_doc', 'query_doc_sent'
     frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [2]} #1, 2
@@ -35,7 +35,7 @@ def HypeParameterSpace():
     train_data_shuffler = {'name': 'train_shuffle', 'type': 'choice', 'values': [0]} # 0, 1
     with_graph = {'name': 'with_graph', 'type': 'choice', 'values': [0]} # 0, 1
     with_graph_training = {'name': 'with_graph_training', 'type': 'choice', 'values': [0]}# 0, 1
-    epochs = {'name': 'epoch', 'type': 'fixed', 'value': 6}
+    epochs = {'name': 'epoch', 'type': 'fixed', 'value': 10}
     #++++++++++++++++++++++++++++++++++
     search_space = [learning_rate, adam_weight_decay, att_drop, feat_drop, project_dim, trip_score_name, with_graph, with_graph_training,
                       batch_size, max_doc_num, epochs, sent_threshold, ir_name, mask_type, span_weight, pair_score_weight,
@@ -60,4 +60,4 @@ def generate_random_search_bash(task_num):
     print('{} jobs have been generated'.format(task_num))
 
 if __name__ == '__main__':
-    generate_random_search_bash(task_num=8)
+    generate_random_search_bash(task_num=21)
