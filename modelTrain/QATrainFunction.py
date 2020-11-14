@@ -193,7 +193,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
     step = 0
     training_logs = []
     all_step_num = len(train_dataloader)
-    for epoch in range(1, args.epoch + 1):
+    for epoch_id in range(1, args.epoch + 1):
         for batch_idx, train_sample in enumerate(train_dataloader):
             log = train_single_step(model=model, optimizer=optimizer, train_sample=train_sample, args=args)
             # ##+++++++++++++++++++++++++++++++++++++++++++++++
@@ -201,6 +201,15 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
             # ##+++++++++++++++++++++++++++++++++++++++++++++++
             step = step + 1
             training_logs.append(log)
+            # ##+++++++++++++++++++++++++++++++++++++++++++++++
+            if epoch_id == args.epoch // 2 + 1:
+                current_learning_rate = optimizer.param_groups[-1]['lr']
+                learning_rate = current_learning_rate * 0.5
+                optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate,
+                                             weight_decay=args.weight_decay)
+                logging.info('Update learning rate from {} to {}'.format(current_learning_rate, learning_rate))
+                scheduler = CosineAnnealingLR(optimizer=optimizer, T_max=args.max_steps - step, eta_min=1e-12)
+            # ##+++++++++++++++++++++++++++++++++++++++++++++++
             ##+++++++++++++++++++++++++++++++++++++++++++++++
             if step % args.save_checkpoint_steps == 0:
                 save_path = save_check_point(model=model, optimizer=optimizer, step=step, loss=train_loss, eval_metric=eval_metric, args=args)
@@ -211,7 +220,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
                     metrics[metric] = sum([log[metric] for log in training_logs]) / len(training_logs)
                 log_metrics('Training average', step, metrics)
                 train_loss = metrics['al_loss']
-                logging.info('Training in {} ({}, {}/{}) steps takes {:.4f} seconds'.format(step, epoch, batch_idx + 1, all_step_num, time() - start_time))
+                logging.info('Training in {} ({}, {}/{}) steps takes {:.4f} seconds'.format(step, epoch_id, batch_idx + 1, all_step_num, time() - start_time))
                 training_logs = []
 
             if args.do_valid and step % args.valid_steps == 0:
