@@ -13,7 +13,7 @@ from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting, set_seeds
 from modelTrain.QATrainFunction import get_train_data_loader, get_dev_data_loader, get_model, get_date_time, get_check_point
 from modelTrain.QATrainFunction import train_all_steps, test_all_steps, log_metrics
-from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, FINE_TUNED_SQUADV_MODEL_NAME
+from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
@@ -124,9 +124,6 @@ def main(args):
     ########+++++++++++++++++++++++++++++
     abs_path = os.path.abspath(args.data_path)
     args.data_path = abs_path
-    if args.pretrained_cfg_flag == 1:
-        args.pretrained_cfg_name = FINE_TUNED_SQUADV_MODEL_NAME
-        logging.info('Squad fine tune model...')
     ########+++++++++++++++++++++++++++++
     # Write logs to checkpoint and console
     set_logger(args)

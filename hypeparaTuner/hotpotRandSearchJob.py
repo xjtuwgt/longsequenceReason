@@ -26,7 +26,7 @@ def HypeParameterSpace():
     max_doc_num = {'name': 'max_doc_num', 'type': 'fixed', 'value': 10}
     sent_threshold = {'name': 'sent_threshold', 'type': 'choice', 'values': [0.925, 0.95]}
     ir_name = {'name': 'score_model_name', 'type': 'choice', 'values': ['MLP']}
-    pre_train_model = {'name': 'pre_train_model', 'type': 'choice', 'values': [1]}
+    pre_train_model = {'name': 'pre_train_model', 'type': 'choice', 'values': [0]}
     task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc', 'doc_sent']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc_sent']} #'query', 'query_doc', 'query_doc_sent'
