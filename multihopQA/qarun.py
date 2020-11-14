@@ -13,7 +13,7 @@ from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting, set_seeds
 from modelTrain.QATrainFunction import get_train_data_loader, get_dev_data_loader, get_model, get_date_time, get_check_point
 from modelTrain.QATrainFunction import train_all_steps, test_all_steps, log_metrics
-from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
+from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, FINE_TUNED_SQUADV_MODEL_NAME
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
@@ -33,6 +33,7 @@ def parse_args(args=None):
     parser.add_argument('--train_data_name', type=str, default='hotpot_train_distractor_wiki_tokenized.json')
     parser.add_argument('--train_data_filtered', type=int, default=0)
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
+    parser.add_argument('--pretrained_cfg_flag', default=1, type=int)
     parser.add_argument('--pretrained_cfg_name', default=PRE_TAINED_LONFORMER_BASE, type=str)
     parser.add_argument('--gpu_num', default=4, type=int)
     parser.add_argument('--test_batch_size', default=64, type=int, help='valid/test batch size')
@@ -123,6 +124,9 @@ def main(args):
     ########+++++++++++++++++++++++++++++
     abs_path = os.path.abspath(args.data_path)
     args.data_path = abs_path
+    if args.pretrained_cfg_flag == 1:
+        args.pretrained_cfg_name = FINE_TUNED_SQUADV_MODEL_NAME
+        logging.info('Squad fine tune model...')
     ########+++++++++++++++++++++++++++++
     # Write logs to checkpoint and console
     set_logger(args)

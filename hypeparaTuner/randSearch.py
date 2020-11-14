@@ -10,7 +10,7 @@ class RandomSearchJob(object):
         according to the parameter order in qarun.sh
         """
         parameter_dict = {}
-        parameter_list = [[] for _ in range(23)]
+        parameter_list = [[] for _ in range(24)]
         parameter_list[1] = self.rand_search_parameter(self.search_space['score_model_name'])
         parameter_dict['P'] = parameter_list[1]
         parameter_list[2] = self.rand_search_parameter(self.search_space['hop_model_name'])
@@ -53,6 +53,8 @@ class RandomSearchJob(object):
         parameter_dict['wgt'] = str(parameter_list[21])
         parameter_list[22] = self.rand_search_parameter(self.search_space['task_name'])
         parameter_dict['tn'] = str(parameter_list[22])
+        parameter_list[23] = self.rand_search_parameter(self.search_space['pre_train_model'])
+        parameter_dict['cfn'] = str(parameter_list[23])
         task_id = '_'.join([k+'_' + v for k, v in parameter_dict.items()])
         parameter_list[3] = task_id
         parameter_id = ' '.join([str(para) for idx, para in enumerate(parameter_list) if idx > 0])

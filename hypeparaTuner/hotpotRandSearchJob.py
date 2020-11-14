@@ -6,6 +6,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 import shutil
 from hypeparaTuner.randSearch import RandomSearchJob
+from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, FINE_TUNED_SQUADV_MODEL_NAME
 
 def remove_all_files(dirpath):
     for filename in os.listdir(dirpath):
@@ -25,6 +26,7 @@ def HypeParameterSpace():
     max_doc_num = {'name': 'max_doc_num', 'type': 'fixed', 'value': 10}
     sent_threshold = {'name': 'sent_threshold', 'type': 'choice', 'values': [0.925, 0.95]}
     ir_name = {'name': 'score_model_name', 'type': 'choice', 'values': ['MLP']}
+    pre_train_model = {'name': 'pre_train_model', 'type': 'choice', 'values': [1]}
     task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc', 'doc_sent']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc_sent']} #'query', 'query_doc', 'query_doc_sent'
@@ -39,7 +41,7 @@ def HypeParameterSpace():
     #++++++++++++++++++++++++++++++++++
     search_space = [learning_rate, adam_weight_decay, att_drop, feat_drop, project_dim, trip_score_name, with_graph, with_graph_training,
                       batch_size, max_doc_num, epochs, sent_threshold, ir_name, mask_type, span_weight, pair_score_weight,
-                    task_name,
+                    task_name, pre_train_model,
                     frozen_layer_num, train_data_filtered, train_data_shuffler]
     search_space = dict((x['name'], x) for x in search_space)
     return search_space
