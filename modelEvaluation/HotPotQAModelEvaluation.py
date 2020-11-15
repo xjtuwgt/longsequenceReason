@@ -12,6 +12,7 @@ import torch
 import pandas as pd
 import json
 from torch import Tensor as T
+from multihopUtils.gpu_utils import gpu_setting
 from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame, test_all_steps, log_metrics
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 
@@ -120,7 +121,20 @@ def main(model_args):
     ########+++++++++++++++++++++++++++++
     # Write logs to checkpoint and console
     if args.cuda:
-        device = torch.device("cuda:0")
+        if args.gpu_num > 1:
+            device_ids, used_memory = gpu_setting(args.gpu_num)
+        else:
+            device_ids, used_memory = gpu_setting()
+        if used_memory > 100:
+            logging.info('Using memory = {}'.format(used_memory))
+        if device_ids is not None:
+            if len(device_ids) > args.gpu_num:
+                device_ids = device_ids[:args.gpu_num]
+            device = torch.device('cuda:{}'.format(device_ids[0]))
+        else:
+            device = torch.device('cuda:0')
+        logging.info('Set the cuda with idxes = {}'.format(device_ids))
+        logging.info('cuda setting {}'.format(device))
         logging.info('GPU setting')
     else:
         device = torch.device('cpu')
