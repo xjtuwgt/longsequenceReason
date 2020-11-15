@@ -4,21 +4,38 @@ PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 from multihopUtils.hotpotqaIOUtils import load_model
-import argparse
 import logging
+import argparse
 import os
 from time import time
 import torch
 import pandas as pd
+import json
 from torch import Tensor as T
-from torch.nn import DataParallel
 from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, get_hotpotqa_longformer_tokenizer
 
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from torch.utils.data import DataLoader
-from multihopQA.hotpotQAdataloader import HotpotTestDataset
+from multihopQA.hotpotQAdataloader import HotpotDevDataset, HotpotTestDataset
+
+######
+MODEL_PATH = '../model'
+######
+
+def parse_args(args=None):
+    parser = argparse.ArgumentParser(
+        description='Testing Long Sequence Reason Model')
+    parser.add_argument('--model_name', default='60000_0.007160362892318517_0.8174847929473423.pt', help='use GPU')
+    parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
+    parser.add_argument('--orig_dev_data_name', type=str, default='hotpot_dev_distractor_v1.json')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    return parser.parse_args(args)
 
 def get_model(args):
     start_time = time()
@@ -31,43 +48,34 @@ def get_model(args):
     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
     return model
 
+def get_config(PATH, config_json_name):
+    parser = argparse.ArgumentParser(
+        description='Training and Testing Long Sequence Reason Model',
+        usage='train.py [<args>] [-h | --help]')
+    config_json_file = os.path.join(PATH, config_json_name)
+    with open(config_json_file, 'r') as config_file:
+        config_data = json.load(config_file)
+
+    for key, value in config_data.items():
+        parser.add_argument('--' + key, default=value)
+    return parser.parse_args()
+
+
 def get_test_data_loader(args):
-    data_frame = read_train_dev_data_frame(file_path=args.data_path, json_fileName=args.test_data_name)
+    data_frame = read_train_dev_data_frame(file_path=args.data_path, json_fileName=args.dev_data_name)
     batch_size = args.test_batch_size
     data_size = data_frame.shape[0]
     tokenizer = get_hotpotqa_longformer_tokenizer(model_name=args.pretrained_cfg_name, do_lower_case=True)
     hotpot_tensorizer = LongformerQATensorizer(tokenizer=tokenizer, max_length=args.max_ctx_len)
     dataloader = DataLoader(
-        HotpotTestDataset(data_frame=data_frame, hotpot_tensorizer=hotpot_tensorizer, max_sent_num=args.max_sent_num,
+        HotpotDevDataset(data_frame=data_frame, hotpot_tensorizer=hotpot_tensorizer, max_sent_num=args.max_sent_num,
                       global_mask_type=args.global_mask_type),
         batch_size=batch_size,
         shuffle=False,
         num_workers=max(1, args.cpu_num // 2),
-        collate_fn=HotpotTestDataset.collate_fn
+        collate_fn=HotpotDevDataset.collate_fn
     )
     return dataloader, data_size
-
-def parse_args(args=None):
-    parser = argparse.ArgumentParser(
-        description='Training and Testing Retrieval Models',
-        usage='train.py [<args>] [-h | --help]')
-    parser.add_argument('--cuda', action='store_true', help='use GPU')
-    parser.add_argument('--do_test', default=True, action='store_true')
-    parser.add_argument('--model_path', type=str, default='../model')
-    parser.add_argument('--model_name', type=str, default='../model')
-    parser.add_argument('--test_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    parser.add_argument('--test_log_steps', default=10, type=int, help='valid/test log every xx steps')
-    parser.add_argument('--save_path', type=str, default='../test_result')
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
-    parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
-    parser.add_argument('--orig_dev_data_name', type=str, default='hotpot_dev_distractor_v1.json')
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    return parser.parse_args(args)
 
 def set_logger(args):
     '''
@@ -89,7 +97,15 @@ def set_logger(args):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-def main(args):
+def main(model_args):
+    args = get_config(PATH=MODEL_PATH, config_json_name='config.json')
+    args.check_point = model_args.model_name
+    args.data_path = model_args.data_path
+    if torch.cuda.is_available():
+        args.cuda = True
+    else:
+        args.cuda = False
+    ###################
     if args.data_path is None:
         raise ValueError('one of data_path must be chosed.')
     if args.save_path and not os.path.exists(args.save_path):
@@ -100,7 +116,6 @@ def main(args):
     args.data_path = abs_path
     ########+++++++++++++++++++++++++++++
     # Write logs to checkpoint and console
-
     if args.cuda:
         device = torch.device("cuda:0")
         logging.info('GPU setting')
@@ -108,38 +123,37 @@ def main(args):
         device = torch.device('cpu')
         logging.info('CPU setting')
     ########+++++++++++++++++++++++++++++
-    logging.info('Loading training data...')
     logging.info('Loading development data...')
     test_data_loader, _ = get_test_data_loader(args=args)
     logging.info('Loading data completed')
     logging.info('*'*75)
-    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    if args.do_test:
-        logging.info('Loading reasonModel...')
-        model = get_model(args=args).to(device)
-        ##+++++++++++
-        model_path = args.save_path
-        model_file_name = args.check_point
-        hotpot_qa_model_name = os.path.join(model_path, model_file_name)
-        model, _, _, _= load_model(model=model, PATH=hotpot_qa_model_name)
-        model = model.to(device)
-        ##+++++++++++
-        logging.info('Model Parameter Configuration:')
-        for name, param in model.named_parameters():
-            logging.info('Parameter {}: {}, require_grad = {}'.format(name, str(param.size()), str(param.requires_grad)))
-        logging.info('*' * 75)
-        logging.info("Model hype-parameter information...")
-        for key, value in vars(args).items():
-            logging.info('Hype-parameter\t{} = {}'.format(key, value))
-        logging.info('*' * 75)
-        logging.info('projection_dim = {}'.format(args.project_dim))
-        logging.info('Testing on dataset...')
-        logging.info('*' * 75)
-        test_result_data = hotpot_prediction(model=model, test_data_loader=test_data_loader, args=args)
-        test_result_name = os.path.join(args.save_path, 'prediction.json')
-        test_result_data.to_json(test_result_name, orient='records')
-        logging.info('Saving {} record results to {}'.format(test_result_data.shape, test_result_name))
-        logging.info('*' * 75)
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    logging.info('Loading Model...')
+    model = get_model(args=args).to(device)
+    ##+++++++++++
+    model_path = args.save_path
+    model_file_name = args.check_point
+    hotpot_qa_model_name = os.path.join(model_path, model_file_name)
+    model = load_model(model=model, PATH=hotpot_qa_model_name)
+    model = model.to(device)
+    ##+++++++++++
+    logging.info('Model Parameter Configuration:')
+    for name, param in model.named_parameters():
+        logging.info('Parameter {}: {}, require_grad = {}'.format(name, str(param.size()), str(param.requires_grad)))
+    logging.info('*' * 75)
+    logging.info("Model hype-parameter information...")
+    for key, value in vars(args).items():
+        logging.info('Hype-parameter\t{} = {}'.format(key, value))
+    logging.info('*' * 75)
+    logging.info('projection_dim = {}'.format(args.project_dim))
+    logging.info('Testing on dataset...')
+    logging.info('*' * 75)
+    test_result_data = hotpot_prediction(model=model, test_data_loader=test_data_loader, args=args)
+    test_result_name = os.path.join(args.save_path, 'prediction.json')
+    test_result_data.to_json(test_result_name, orient='records')
+    logging.info('Saving {} record results to {}'.format(test_result_data.shape, test_result_name))
+    logging.info('*' * 75)
+
 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def hotpot_prediction(model, test_data_loader, args):
@@ -265,5 +279,17 @@ def supp_sent_prediction(scores: T, mask: T, doc_fact: T, sent_fact: T, pred_num
         supp_facts_predicted.append(doc_sent_idx_pair_i)
     return supp_facts_predicted
 
+
+
+
 if __name__ == '__main__':
     main(parse_args())
+    # model_path = '../model'
+    # config_json_name = 'config.json'
+    # parser = get_config(PATH=model_path, config_json_name=config_json_name)
+    # # print(parser)
+    #
+    # for key, value in vars(parser).items():
+    #     print(key, value)
+
+    print()

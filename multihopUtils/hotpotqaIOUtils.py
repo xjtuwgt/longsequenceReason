@@ -82,12 +82,10 @@ def load_check_point_for_train(model, optimizer: Adam, PATH: str):
     eval_metric = checkpoint['eval']
     return model, optimizer, step, loss, eval_metric
 
-def load_check_point(config_json_name: str, model_name: str, PATH: str):
-    config_json_file = os.path.join(PATH, config_json_name)
-    with open(config_json_file, 'r') as config_file:
-        config_data = json.load(config_file)
-
-    return
+def load_check_point(model, model_name: str, PATH: str):
+    model_path_name = os.path.join(PATH, model_name)
+    model = load_model(model=model, PATH=model_path_name)
+    return model
 
 def load_model(model, PATH: str):
     if not torch.cuda.is_available():
