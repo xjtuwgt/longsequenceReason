@@ -150,7 +150,7 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, args):
     ####################################################################################################################
     ####################################################################################################################
     ####################################################################################################################
-    sent_scores = output_scores['sent_scores']
+    sent_scores = output_scores['sent_score']
     sentIndoc_map = sample['sInd_map'] ## absolute sentence index map to relative sentence index, e.g., 150 sentence indexes to 10 documents
     topk_sent_scores = sent_score_extraction(sent_scores=sent_scores, doc2sent_idexes=doc_res_dict['top_k_sents'])
     threshold_sent_scores = sent_score_extraction(sent_scores=sent_scores, doc2sent_idexes=doc_res_dict['threshold_sents'])
