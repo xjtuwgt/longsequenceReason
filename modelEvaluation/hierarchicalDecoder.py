@@ -83,7 +83,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             topk_support_sent_doc_sent_pair_results += topk_sent_res_dict_i['doc_sent_pair']
             # **********************************************************************************************************
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            thresh_sent_res_dict_i = eval_res['thresh_sent_pred']
+            thresh_sent_res_dict_i = eval_res['threshold_sent_pred']
             thresh_sent_logs += thresh_sent_res_dict_i['log']
             thresh_support_sent_pred_results += thresh_sent_res_dict_i['prediction']
             thresh_support_sent_doc_sent_pair_results += thresh_sent_res_dict_i['doc_sent_pair']
@@ -91,7 +91,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             topk_answer_span_i = eval_res['topk_span_pred']
             topk_answer_span_results += topk_answer_span_i
-            thresh_answer_span_i = eval_res['threhold_span_pred']
+            thresh_answer_span_i = eval_res['threshold_span_pred']
             thresh_answer_span_results += thresh_answer_span_i
             encode_i = eval_res['encode_id']
             encode_results += encode_i
@@ -191,7 +191,7 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, args):
            'topk_sent_pred': topk_sent_res_dict,
            'threshold_sent_pred': threshold_sent_res_dict,
            'topk_span_pred': topk_span_start_end_pair,
-           'threhold_span_pred': threshold_span_start_end_pair,
+           'threshold_span_pred': threshold_span_start_end_pair,
            'encode_id': encode_ids}
     return res
 
