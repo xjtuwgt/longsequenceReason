@@ -28,7 +28,7 @@ MODEL_PATH = '../model'
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='Testing Long Sequence Reason Model')
-    parser.add_argument('--model_name', default='1000_0.08414271919056773_0.1182526212925036.pt', help='use GPU')
+    parser.add_argument('--model_name', default='60000_0.007160362892318517_0.8174847929473423.pt', help='use GPU')
     parser.add_argument('--model_config_name', default='config.json', help='use GPU')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -102,6 +102,7 @@ def set_logger(args):
 
 def main(model_args):
     args = get_config(PATH=MODEL_PATH, config_json_name=model_args.model_config_name)
+    print(args)
     args.check_point = model_args.model_name
     args.data_path = model_args.data_path
     args.test_batch_size = model_args.test_batch_size
