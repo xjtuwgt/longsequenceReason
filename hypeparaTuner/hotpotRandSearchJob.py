@@ -37,7 +37,7 @@ def HypeParameterSpace():
     train_data_shuffler = {'name': 'train_shuffle', 'type': 'choice', 'values': [0]} # 0, 1
     with_graph = {'name': 'with_graph', 'type': 'choice', 'values': [0]} # 0, 1
     with_graph_training = {'name': 'with_graph_training', 'type': 'choice', 'values': [0]}# 0, 1
-    epochs = {'name': 'epoch', 'type': 'fixed', 'value': 10}
+    epochs = {'name': 'epoch', 'type': 'fixed', 'value': 8}
     #++++++++++++++++++++++++++++++++++
     search_space = [learning_rate, adam_weight_decay, att_drop, feat_drop, project_dim, trip_score_name, with_graph, with_graph_training,
                       batch_size, max_doc_num, epochs, sent_threshold, ir_name, mask_type, span_weight, pair_score_weight,
