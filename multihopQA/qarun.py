@@ -52,7 +52,7 @@ def parse_args(args=None):
     parser.add_argument('--max_doc_num', default=10, type=int)
     parser.add_argument('--accumulation_steps', default=0, type=int)
     parser.add_argument('--max_ctx_len', default=4096, type=int)
-    parser.add_argument('--weight_decay', default=1e-6, type=float)
+    parser.add_argument('--weight_decay', default=1e-5, type=float)
     parser.add_argument('-lr', '--learning_rate', default=0.00004, type=float) # 1e-5 level
     parser.add_argument('--batch_size', default=2, type=int)
     ###++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
