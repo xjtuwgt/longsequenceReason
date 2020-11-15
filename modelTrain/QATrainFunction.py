@@ -203,14 +203,6 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
             training_logs.append(log)
             torch.cuda.empty_cache()
             # ##+++++++++++++++++++++++++++++++++++++++++++++++
-            if epoch_id == args.epoch // 2 + 1:
-                current_learning_rate = optimizer.param_groups[-1]['lr']
-                learning_rate = current_learning_rate * 0.5
-                optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate,
-                                             weight_decay=args.weight_decay)
-                logging.info('Update learning rate from {} to {}'.format(current_learning_rate, learning_rate))
-                scheduler = CosineAnnealingLR(optimizer=optimizer, T_max=args.max_steps - step, eta_min=1e-12)
-            # ##+++++++++++++++++++++++++++++++++++++++++++++++
             ##+++++++++++++++++++++++++++++++++++++++++++++++
             if step % args.save_checkpoint_steps == 0:
                 save_path = save_check_point(model=model, optimizer=optimizer, step=step, loss=train_loss, eval_metric=eval_metric, args=args)
