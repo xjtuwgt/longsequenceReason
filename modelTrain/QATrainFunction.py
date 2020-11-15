@@ -530,7 +530,7 @@ def test_all_steps_hierartical(model, test_data_loader, args):
                 sample = test_sample
             output = model(sample)
             N = N + sample['doc_labels'].shape[0]
-            eval_res = metric_computation(output_scores=output, sample=sample, args=args)
+            eval_res = hierartical_metric_computation(output_scores=output, sample=sample, args=args)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             # ******************************************
             step += 1
