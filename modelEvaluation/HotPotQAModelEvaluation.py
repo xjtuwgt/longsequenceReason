@@ -52,41 +52,20 @@ def parse_args(args=None):
         description='Training and Testing Retrieval Models',
         usage='train.py [<args>] [-h | --help]')
     parser.add_argument('--cuda', action='store_true', help='use GPU')
-    parser.add_argument('--do_debug', action='store_true', help='whether')
     parser.add_argument('--do_test', default=True, action='store_true')
-    parser.add_argument('--do_retrieval', action='store_true')
-    parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
-    parser.add_argument('--test_data_name', type=str, default='hotpot_test_distractor_wiki_tokenized.json')
-    parser.add_argument('--reasonModel', default='Unified QA Model', type=str)
-    parser.add_argument('--pretrained_cfg_name', default=PRE_TAINED_LONFORMER_BASE, type=str)
-
-    parser.add_argument('--gpu_num', default=4, type=int)
-    parser.add_argument('--test_batch_size', default=32, type=int, help='valid/test batch size')
-    ###++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    parser.add_argument('--model_name', default='MLP', type=str) #'DotProduct', 'BiLinear', 'MLP'
-    parser.add_argument('--hop_model_name', default='DotProduct', type=str)  # 'DotProduct', 'BiLinear'
-    parser.add_argument('--frozen_layer_num', default=2, type=int, help='number of layers for document encoder frozen during training')
-    parser.add_argument('--project_dim', default=256, type=int)
-    parser.add_argument('--global_mask_type', default='query_doc', type=str) ## query, query_doc, query_doc_sent
-    parser.add_argument('--sent_threshold', default=0.925, type=float)
-    parser.add_argument('--max_sent_num', default=150, type=int)
-    parser.add_argument('--max_ctx_len', default=4096, type=int)
-    ###++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ##+++++++++++++++++++++++++Parameter for multi-head self-attention++++++++++++++++++++++++++++++++++
-    parser.add_argument('--input_drop', default=0.1, type=float)
-    parser.add_argument('--attn_drop', default=0.1, type=float)
-    parser.add_argument('--heads', default=8, type=float)
-    parser.add_argument('--with_graph', default=True, type=bool)
-    parser.add_argument('--seq_project', default=True, action='store_true', help='whether perform sequence projection')
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    parser.add_argument('--num_labels', default=2, type=int, help='span prediction label') ##start and end position prediction, seperately
-    parser.add_argument('-cpu', '--cpu_num', default=12, type=int)
-    parser.add_argument('-init', '--init_checkpoint', default=None, type=str)
-    parser.add_argument('-save', '--save_path', default='../reasonModel', type=str)
-    parser.add_argument('--check_point', default='all_step_final_loss_final.pt', type=str)
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--model_path', type=str, default='../model')
+    parser.add_argument('--model_name', type=str, default='../model')
+    parser.add_argument('--test_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--test_log_steps', default=10, type=int, help='valid/test log every xx steps')
-    parser.add_argument('--rand_seed', default=12345, type=int, help='random seed')
+    parser.add_argument('--save_path', type=str, default='../test_result')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
+    parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
+    parser.add_argument('--orig_dev_data_name', type=str, default='hotpot_dev_distractor_v1.json')
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     return parser.parse_args(args)
 
@@ -112,32 +91,23 @@ def set_logger(args):
 
 def main(args):
     if args.data_path is None:
-        raise ValueError('one of init_checkpoint/data_path must be chosed.')
+        raise ValueError('one of data_path must be chosed.')
     if args.save_path and not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-
+    set_logger(args)
     ########+++++++++++++++++++++++++++++
     abs_path = os.path.abspath(args.data_path)
     args.data_path = abs_path
     ########+++++++++++++++++++++++++++++
     # Write logs to checkpoint and console
-    set_logger(args)
+
     if args.cuda:
-        available_device_count = torch.cuda.device_count()
-        if args.gpu_num > available_device_count:
-            args.gpu_num = available_device_count
-            device_ids = []
-            for i in range(args.gpu_num - 1, -1, -1):
-                device_ids.append(i)
-                device = torch.device("cuda:%d" % i)
-        else:
-            device_ids = list(range(args.gpu_num))
-            device = torch.device("cuda:0")
+        device = torch.device("cuda:0")
+        logging.info('GPU setting')
     else:
         device = torch.device('cpu')
-        device_ids = None
         logging.info('CPU setting')
-
+    ########+++++++++++++++++++++++++++++
     logging.info('Loading training data...')
     logging.info('Loading development data...')
     test_data_loader, _ = get_test_data_loader(args=args)
@@ -154,8 +124,6 @@ def main(args):
         model, _, _, _= load_model(model=model, PATH=hotpot_qa_model_name)
         model = model.to(device)
         ##+++++++++++
-        if device_ids is not None:
-            model = DataParallel(model, device_ids=device_ids)
         logging.info('Model Parameter Configuration:')
         for name, param in model.named_parameters():
             logging.info('Parameter {}: {}, require_grad = {}'.format(name, str(param.size()), str(param.requires_grad)))
