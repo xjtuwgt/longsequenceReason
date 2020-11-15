@@ -27,7 +27,8 @@ MODEL_PATH = '../model'
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='Testing Long Sequence Reason Model')
-    parser.add_argument('--model_name', default='60000_0.007160362892318517_0.8174847929473423.pt', help='use GPU')
+    parser.add_argument('--model_name', default='1000_0.08414271919056773_0.1182526212925036.pt', help='use GPU')
+    parser.add_argument('--model_config_name', default='config.json', help='use GPU')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
@@ -98,7 +99,7 @@ def set_logger(args):
     logging.getLogger('').addHandler(console)
 
 def main(model_args):
-    args = get_config(PATH=MODEL_PATH, config_json_name='config.json')
+    args = get_config(PATH=MODEL_PATH, config_json_name=model_args.model_config_name)
     args.check_point = model_args.model_name
     args.data_path = model_args.data_path
     if torch.cuda.is_available():
