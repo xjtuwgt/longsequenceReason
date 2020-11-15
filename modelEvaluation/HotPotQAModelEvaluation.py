@@ -9,9 +9,8 @@ import argparse
 import os
 from time import time
 import torch
-import pandas as pd
 import json
-from torch import Tensor as T
+from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting
 from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame, test_all_steps, log_metrics
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
@@ -19,7 +18,7 @@ from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from torch.utils.data import DataLoader
-from multihopQA.hotpotQAdataloader import HotpotDevDataset, HotpotTestDataset
+from multihopQA.hotpotQAdataloader import HotpotDevDataset
 
 ######
 MODEL_PATH = '../model'
@@ -102,7 +101,6 @@ def set_logger(args):
 
 def main(model_args):
     args = get_config(PATH=MODEL_PATH, config_json_name=model_args.model_config_name)
-    print(args)
     args.check_point = model_args.model_name
     args.data_path = model_args.data_path
     args.test_batch_size = model_args.test_batch_size
@@ -154,6 +152,10 @@ def main(model_args):
     hotpot_qa_model_name = os.path.join(model_path, model_file_name)
     model = load_model(model=model, PATH=hotpot_qa_model_name)
     model = model.to(device)
+    if device_ids is not None:
+        if len(device_ids) > 1:
+            model = DataParallel(model, device_ids=device_ids, output_device=device)
+            logging.info('Data Parallel model setting')
     ##+++++++++++
     logging.info('Model Parameter Configuration:')
     for name, param in model.named_parameters():
