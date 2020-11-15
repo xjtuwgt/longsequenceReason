@@ -19,6 +19,7 @@ from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEn
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from torch.utils.data import DataLoader
 from multihopQA.hotpotQAdataloader import HotpotDevDataset
+from modelEvaluation.hierarchicalDecoder import test_all_steps_hierartical
 
 ######
 MODEL_PATH = '../model'
@@ -184,6 +185,26 @@ def main(model_args):
     date_time_str = get_date_time()
     dev_result_name = os.path.join(args.save_path,
                                    date_time_str + '_' + args.check_point + '_evaluation.json')
+    dev_data_frame.to_json(dev_result_name, orient='records')
+    logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
+    logging.info('*' * 75)
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    metric_dict = test_all_steps_hierartical(model=model, device=device, test_data_loader=test_data_loader, args=args)
+    answer_type_acc = metric_dict['answer_type_acc']
+    logging.info('*' * 75)
+    logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
+    logging.info('*' * 75)
+    for key, value in metric_dict.items():
+        if key.endswith('metrics'):
+            logging.info('{} prediction'.format(key))
+            log_metrics('Valid', 'final', value)
+    logging.info('*' * 75)
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    dev_data_frame = metric_dict['res_dataframe']
+    date_time_str = get_date_time()
+    dev_result_name = os.path.join(args.save_path,
+                                   date_time_str + '_' + args.check_point + '_hier_evaluation.json')
     dev_data_frame.to_json(dev_result_name, orient='records')
     logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
     logging.info('*' * 75)
