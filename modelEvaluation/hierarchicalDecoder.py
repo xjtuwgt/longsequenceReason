@@ -109,6 +109,17 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
         thresh_sent_metrics[metric] = sum([log[metric] for log in thresh_sent_logs]) / len(thresh_sent_logs)
     ##=================================================
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
+    print('ans {}\n topk sd {}\n th sd {}\n k ss {}\nt ss {}\n k '
+          'ans {}\n t ans {}\n encode {}\n'.format(len(answer_type_pred_results),
+                                                       len(topk_support_doc_pred_results),
+                                                       len(threshold_support_doc_pred_results),
+                                                   len(topk_support_sent_pred_results),
+                                                   len(thresh_support_sent_pred_results),
+                                                   len(topk_support_sent_doc_sent_pair_results),
+                                                   len(thresh_support_sent_doc_sent_pair_results),
+                                                   len(topk_answer_span_results),
+                                                       len(thresh_answer_span_results),
+                                                       len(encode_results)))
     result_dict = {'aty_pred': answer_type_pred_results,
                    'topk_sd_pred': topk_support_doc_pred_results,
                    'thresh_sd_pred': threshold_support_doc_pred_results,
