@@ -313,6 +313,8 @@ def hierartical_supp_doc_prediction(doc_scores: T, labels: T, mask: T, doc_start
             threshold_start_end_i.append((doc_s_i, doc_e_i))
             # ++++++++++++++++++++++++++++++++++++++++
             sent_idx_i = (sent2doc_map[idx] == thresh_pre_doc_idx).nonzero(as_tuple=False).squeeze().tolist()
+            if not isinstance(sent_idx_i, list):
+                sent_idx_i = [sent_idx_i]
             threshold_sent_i += sent_idx_i
         ###############
         top_k_doc_start_end.append(top_k_start_end_i)
