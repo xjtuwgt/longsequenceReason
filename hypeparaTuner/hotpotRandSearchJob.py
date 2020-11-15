@@ -55,11 +55,11 @@ def generate_random_search_bash(task_num):
     search_space = HypeParameterSpace()
     random_search_job =RandomSearchJob(search_space=search_space)
     for i in range(task_num):
-        task_id, parameter_id = random_search_job.single_task_trial(i+500)
+        task_id, parameter_id = random_search_job.single_task_trial(i+600)
         with open(bash_save_path + 'run_' + task_id +'.sh', 'w') as rsh_i:
             command_i = 'bash qarun.sh ' + parameter_id
             rsh_i.write(command_i)
     print('{} jobs have been generated'.format(task_num))
 
 if __name__ == '__main__':
-    generate_random_search_bash(task_num=16)
+    generate_random_search_bash(task_num=4)
