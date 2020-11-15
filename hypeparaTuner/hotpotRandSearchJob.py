@@ -32,7 +32,7 @@ def HypeParameterSpace():
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc']} #'query', 'query_doc', 'query_doc_sent'
     frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [5,6]} #1, 2
     span_weight = {'name': 'span_weight', 'type': 'choice', 'values': [0.1, 0.2, 0.5]}
-    pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [0, 1.0]} #0.1, 0.2, 0.5, 1.0
+    pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [0.5, 1.0]} #0.1, 0.2, 0.5, 1.0
     train_data_filtered = {'name': 'train_data', 'type': 'choice', 'values': [0]} # 0, 1, 2
     train_data_shuffler = {'name': 'train_shuffle', 'type': 'choice', 'values': [0]} # 0, 1
     with_graph = {'name': 'with_graph', 'type': 'choice', 'values': [0]} # 0, 1
