@@ -35,6 +35,7 @@ def parse_args(args=None):
     parser.add_argument('--orig_dev_data_name', type=str, default='hotpot_dev_distractor_v1.json')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
+    parser.add_argument('--test_batch_size', type=int, default=16)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
 
@@ -102,6 +103,7 @@ def main(model_args):
     args = get_config(PATH=MODEL_PATH, config_json_name=model_args.model_config_name)
     args.check_point = model_args.model_name
     args.data_path = model_args.data_path
+    args.test_batch_size = model_args.test_batch_size
     if torch.cuda.is_available():
         args.cuda = True
     else:
