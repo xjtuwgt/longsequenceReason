@@ -170,6 +170,10 @@ def main(model_args):
     for key, value in vars(args).items():
         logging.info('Hype-parameter\t{} = {}'.format(key, value))
     logging.info('*' * 75)
+    logging.info("Model hype-parameter information...")
+    for key, value in vars(model_args).items():
+        logging.info('Hype-parameter\t{} = {}'.format(key, value))
+    logging.info('*' * 75)
     logging.info('projection_dim = {}'.format(args.project_dim))
     logging.info('Multi-task encoding')
     logging.info('*' * 75)
