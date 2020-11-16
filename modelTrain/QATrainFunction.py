@@ -195,14 +195,14 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
     for epoch_id in range(1, args.epoch + 1):
         for batch_idx, train_sample in enumerate(train_dataloader):
             log = train_single_step(model=model, optimizer=optimizer, train_sample=train_sample, args=args)
-            # ##+++++++++++++++++++++++++++++++++++++++++++++++
+            # ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             scheduler.step()
-            # ##+++++++++++++++++++++++++++++++++++++++++++++++
+            # ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             step = step + 1
             training_logs.append(log)
             torch.cuda.empty_cache()
-            # ##+++++++++++++++++++++++++++++++++++++++++++++++
-            ##+++++++++++++++++++++++++++++++++++++++++++++++
+            # ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            ## ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             if step % args.save_checkpoint_steps == 0:
                 save_path = save_check_point(model=model, optimizer=optimizer, step=step, loss=train_loss, eval_metric=eval_metric, args=args)
                 logging.info('Saving the mode in {}'.format(save_path))
@@ -217,7 +217,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
 
             if args.do_valid and step % args.valid_steps == 0:
                 logging.info('*' * 75)
-                logging.info('Evaluating on Valid Dataset...')
+                logging.info('Evaluating on Valid Data set...')
                 metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args, device=device)
                 logging.info('*' * 75)
                 answer_type_acc = metric_dict['answer_type_acc']
