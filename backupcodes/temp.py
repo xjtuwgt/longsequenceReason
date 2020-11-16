@@ -499,3 +499,15 @@ def sp_score(prediction, gold):
     f1 = 2 * prec * recall / (prec + recall) if prec + recall > 0 else 0.0
     em = 1.0 if fp + fn == 0 else 0.0
     return em, prec, recall, f1
+
+    # print('ans {}\n topk sd {}\n th sd {}\n k ss {}\nt ss {}\n k pair {}\n t pair {} \n k '
+    #       'ans {}\n t ans {}\n encode {}\n'.format(len(answer_type_pred_results),
+    #                                                    len(topk_support_doc_pred_results),
+    #                                                    len(threshold_support_doc_pred_results),
+    #                                                len(topk_support_sent_pred_results),
+    #                                                len(thresh_support_sent_pred_results),
+    #                                                len(topk_support_sent_doc_sent_pair_results),
+    #                                                len(thresh_support_sent_doc_sent_pair_results),
+    #                                                len(topk_answer_span_results),
+    #                                                    len(thresh_answer_span_results),
+    #                                                    len(encode_id_results)))

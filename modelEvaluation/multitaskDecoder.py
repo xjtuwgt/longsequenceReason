@@ -12,7 +12,7 @@ from modelEvaluation.hotpotEvaluationUtils import sp_score
 ##################################
 MASK_VALUE = -1e9
 ##################################
-def test_all_steps(model, test_data_loader, device, args):
+def multi_task_decoder(model, test_data_loader, device, args):
     '''
             Evaluate the reasonModel on test or valid datasets
     '''

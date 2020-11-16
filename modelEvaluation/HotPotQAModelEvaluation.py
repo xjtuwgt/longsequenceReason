@@ -19,8 +19,8 @@ from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEn
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from torch.utils.data import DataLoader
 from multihopQA.hotpotQAdataloader import HotpotDevDataset
-from modelEvaluation.hierarchicalDecoder import test_all_steps_hierartical
-from modelEvaluation.multitaskDecoder import test_all_steps
+from modelEvaluation.hierarchicalDecoder import hierartical_decoder
+from modelEvaluation.multitaskDecoder import multi_task_decoder
 
 
 def parse_args(args=None):
@@ -178,7 +178,7 @@ def main(model_args):
     logging.info('Multi-task encoding')
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # metric_dict = test_all_steps(model=model, device=device, test_data_loader=test_data_loader, args=args)
+    # metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, args=args)
     # answer_type_acc = metric_dict['answer_type_acc']
     # logging.info('*' * 75)
     # logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
@@ -198,7 +198,7 @@ def main(model_args):
     # logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     logging.info('Hierarchical encoding')
-    metric_dict = test_all_steps_hierartical(model=model, device=device, test_data_loader=test_data_loader, doc_topk=model_args.doc_topk, args=args)
+    metric_dict = hierartical_decoder(model=model, device=device, test_data_loader=test_data_loader, doc_topk=model_args.doc_topk, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
     logging.info('*' * 75)
     logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
