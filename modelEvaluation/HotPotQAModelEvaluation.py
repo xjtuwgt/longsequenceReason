@@ -21,9 +21,6 @@ from torch.utils.data import DataLoader
 from multihopQA.hotpotQAdataloader import HotpotDevDataset
 from modelEvaluation.hierarchicalDecoder import test_all_steps_hierartical
 
-######
-MODEL_PATH = '../model'
-######
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
@@ -31,6 +28,7 @@ def parse_args(args=None):
     parser.add_argument('--model_name', default='33000_0.2215285514295101_0.7296051866207314.pt', help='use GPU')
     parser.add_argument('--model_config_name', default='config1.json', help='use GPU')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
+    parser.add_argument('--model_path', type=str, default='../model')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
     parser.add_argument('--orig_dev_data_name', type=str, default='hotpot_dev_distractor_v1.json')
@@ -104,11 +102,12 @@ def set_logger(args):
     logging.getLogger('').addHandler(console)
 
 def main(model_args):
-    args = get_config(PATH=MODEL_PATH, config_json_name=model_args.model_config_name)
+    args = get_config(PATH=model_args.model_path, config_json_name=model_args.model_config_name)
     args.check_point = model_args.model_name
     args.data_path = model_args.data_path
     args.test_batch_size = model_args.test_batch_size
     args.doc_threshold = model_args.doc_threshold
+    args.save_path = model_args.model_path
     if torch.cuda.is_available():
         args.cuda = True
     else:
