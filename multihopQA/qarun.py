@@ -151,16 +151,10 @@ def main(args):
                 if args.gpu_num > available_device_count:
                     args.gpu_num = available_device_count
                 # ++++++++++++++++++++++++++++++++++
-                device_ids, used_memory = gpu_setting(available_device_count)
+                device_ids, used_memory = gpu_setting(args.gpu_num)
                 # ++++++++++++++++++++++++++++++++++
                 device = torch.device("cuda:{}".format(device_ids[0]))
-                # if args.gpu_num > available_device_count:
-                #     args.gpu_num = available_device_count
-                #     device_ids = [i for i in range(args.gpu_num)]
-                #     device = torch.device("cuda:{}".format(device_ids[0]))
-                # else:
-                #     device_ids = list(range(args.gpu_num))
-                #     device = torch.device("cuda:0")
+                # ++++++++++++++++++++++++++++++++++
             else:
                 device = torch.device("cuda:0")
                 device_ids = None
