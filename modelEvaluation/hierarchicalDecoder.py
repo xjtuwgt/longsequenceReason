@@ -173,26 +173,26 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, args):
                                                     sent2doc_map=sent2doc_map, sentIndoc_map=sentIndoc_map, pred_num=2,
                                                     threshold=args.sent_threshold)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    topk_span_start_predictions, topk_span_end_predictions = [], []
-    threshold_span_start_predictions, threshold_span_end_predictions = [], []
     span_start_scores, span_end_scores = output_scores['span_score']
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     topk_span_start_scores = token_score_extraction(token_scores=span_start_scores, doc_start_end_pair_list=doc_res_dict['top_k_doc2token'])
     topk_span_start_i = torch.argmax(topk_span_start_scores, dim=-1)
-    topk_span_start_predictions.append(topk_span_start_i)
+    topk_span_start_i = topk_span_start_i.detach().tolist()
 
     topk_span_end_scores = token_score_extraction(token_scores=span_end_scores, doc_start_end_pair_list=doc_res_dict['top_k_doc2token'])
     topk_span_end_i = torch.argmax(topk_span_end_scores, dim=-1)
-    topk_span_end_predictions.append(topk_span_end_i)
-
+    topk_span_end_i = topk_span_end_i.detach().tolist()
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     threshold_span_start_scores = token_score_extraction(token_scores=span_start_scores, doc_start_end_pair_list=doc_res_dict['threshold_doc2token'])
-    threshold_span_start_i = torch.argmax(threshold_span_start_scores)
-    threshold_span_start_predictions.append(threshold_span_start_i)
+    threshold_span_start_i = torch.argmax(threshold_span_start_scores, dim=-1)
+    threshold_span_start_i = threshold_span_start_i.detach().tolist()
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     threshold_span_end_scores = token_score_extraction(token_scores=span_end_scores, doc_start_end_pair_list=doc_res_dict['threshold_doc2token'])
-    threshold_span_end_i = torch.argmax(threshold_span_end_scores)
-    threshold_span_end_predictions.append(threshold_span_end_i)
-
-    topk_span_start_end_pair = list(zip(topk_span_start_predictions, topk_span_end_predictions))
-    threshold_span_start_end_pair = list(zip(threshold_span_start_predictions, threshold_span_end_predictions))
+    threshold_span_end_i = torch.argmax(threshold_span_end_scores, dim=-1)
+    threshold_span_end_i = threshold_span_end_i.detach().tolist()
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    topk_span_start_end_pair = list(zip(topk_span_start_i, topk_span_end_i))
+    threshold_span_start_end_pair = list(zip(threshold_span_start_i, threshold_span_end_i))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     res = {'answer_type_pred': (correct_yn, yn_predicted_labels),
            'supp_doc_pred': doc_res_dict,
@@ -226,7 +226,7 @@ def supp_sent_predictions(scores: T, labels: T, mask: T, sent2doc_map: T, sentIn
     argsort = torch.argsort(masked_scores, dim=1, descending=True)
     logs = []
     predicted_labels = []
-    true_labels = []
+    # true_labels = []
     doc_sent_pair_list = []
     for idx in range(batch_size):
         # ============================================================================================================
@@ -243,7 +243,7 @@ def supp_sent_predictions(scores: T, labels: T, mask: T, sent2doc_map: T, sentIn
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         predicted_labels.append(pred_labels_i)
-        true_labels.append(labels_i)
+        # true_labels.append(labels_i)
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
         logs.append({
