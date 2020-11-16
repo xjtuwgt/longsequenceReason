@@ -169,7 +169,7 @@ def main(args):
         device_ids = None
         logging.info('CPU setting')
 
-    logging.info('Device = {}'.format(device))
+    logging.info('Device = {}, Device ids = {}'.format(device, device_ids))
 
     logging.info('Loading training data...')
     train_data_loader, train_data_size = get_train_data_loader(args=args)
