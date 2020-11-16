@@ -267,7 +267,6 @@ def train_single_step(model, optimizer, train_sample, args):
                                                         loss_output['span_loss'], \
                                                         loss_output['doc_loss'], loss_output['sent_loss']
     supp_doc_pair_loss = loss_output['doc_pair_loss']
-
     if args.task == 'doc':
         loss = supp_doc_loss + supp_doc_pair_loss * args.pair_score_weight
     elif args.task == 'doc_sent':

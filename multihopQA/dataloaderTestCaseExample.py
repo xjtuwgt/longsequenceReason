@@ -11,7 +11,10 @@ from multihopQA.hotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset, 
 
 def data_loader_consistent_checker(train=True):
     file_path = '../data/hotpotqa/distractor_qa'
-    dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
+    if train:
+        dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
+    else:
+        dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
     data_frame = read_train_dev_data_frame(PATH=file_path, json_fileName=dev_file_name)
     longtokenizer = get_hotpotqa_longformer_tokenizer()
     hotpot_tensorizer = LongformerQATensorizer(tokenizer=longtokenizer, max_length=4096)

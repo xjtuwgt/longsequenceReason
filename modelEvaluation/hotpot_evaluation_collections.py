@@ -12,6 +12,7 @@ from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, get_hotpo
 from transformers import LongformerTokenizer
 from modelEvaluation.hotpot_evaluate_v1 import json_eval
 import swifter
+span_length_limit = 20
 
 def load_data_frame_align_with_dev(file_path, json_fileName):
     start_time = time()
@@ -68,7 +69,10 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
         encode_ids = row['encode_ids']
         context_docs = row['context']
         if answer_type_prediction == 0:
-            answer_encode_ids = encode_ids[span_prediction[0]:(span_prediction[1] +1)]
+            span_start, span_end = span_prediction[0], span_prediction[1]
+            if span_end - span_start > 20:
+                span_end = span_start + 20
+            answer_encode_ids = encode_ids[span_start:(span_end+1)]
             answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
         elif answer_type_prediction == 1:
             answer_prediction = 'yes'
@@ -113,10 +117,16 @@ def convert2leadboard_hierartical(data: DataFrame, tokenizer: LongformerTokenize
         encode_ids = row['encode_ids']
         context_docs = row['context']
         if answer_type_prediction == 0:
-            topk_answer_encode_ids = encode_ids[topk_ans_span[0]:(topk_ans_span[1] + 1)]
+            topk_span_start, topk_span_end = topk_ans_span[0], topk_ans_span[1]
+            if topk_span_end > topk_span_start + span_length_limit:
+                topk_span_end = topk_span_start + span_length_limit
+            topk_answer_encode_ids = encode_ids[topk_span_start:(topk_span_end + 1)]
             topk_answer_prediction = tokenizer.decode(topk_answer_encode_ids, skip_special_tokens=True)
 
-            thresh_answer_encode_ids = encode_ids[thresh_ans_span[0]:(thresh_ans_span[1] + 1)]
+            thresh_span_start, thresh_span_end = thresh_ans_span[0], thresh_ans_span[1]
+            if thresh_span_end > thresh_span_start + span_length_limit:
+                thresh_span_end = thresh_span_start + span_length_limit
+            thresh_answer_encode_ids = encode_ids[thresh_span_start:(thresh_span_end + 1)]
             thresh_answer_prediction = tokenizer.decode(thresh_answer_encode_ids, skip_special_tokens=True)
 
         elif answer_type_prediction == 1:
