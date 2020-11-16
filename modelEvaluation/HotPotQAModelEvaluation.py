@@ -29,7 +29,7 @@ def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='Testing Long Sequence Reason Model')
     parser.add_argument('--model_name', default='33000_0.2215285514295101_0.7296051866207314.pt', help='use GPU')
-    parser.add_argument('--model_config_name', default='config.json', help='use GPU')
+    parser.add_argument('--model_config_name', default='config1.json', help='use GPU')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
