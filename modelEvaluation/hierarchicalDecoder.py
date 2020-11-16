@@ -95,7 +95,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             # **********************************************************************************************************
             step += 1
             if step % args.test_log_steps == 0:
-                logging.info('Evaluating the reasonModel... {}/{} in {:.4f} seconds'.format(step, total_steps, time()-start_time))
+                logging.info('Evaluating the Model... {}/{} in {:.4f} seconds'.format(step, total_steps, time()-start_time))
 
     ###############################################################
     doc_metrics, topk_sent_metrics, thresh_sent_metrics = {}, {}, {}
