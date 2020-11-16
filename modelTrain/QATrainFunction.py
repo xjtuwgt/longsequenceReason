@@ -355,16 +355,18 @@ def test_all_steps(model, test_data_loader, device, args):
         sent_metrics[metric] = sum([log[metric] for log in sent_logs]) / len(sent_logs)
     ##=================================================
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
-    result_dict = {'aty_pred': answer_type_pred_results,
-                   'sd_pred': support_doc_pred_results,
-                   'ss_pred': support_sent_pred_results,
-                   'ans_span': span_pred_results,
-                   'ss_ds_pair': support_sent_doc_sent_pair_results,
-                   'encode_ids': encode_id_results} ## for detailed results checking
-    res_data_frame = DataFrame(result_dict)
-    ##=================================================
+    # result_dict = {'aty_pred': answer_type_pred_results,
+    #                'sd_pred': support_doc_pred_results,
+    #                'ss_pred': support_sent_pred_results,
+    #                'ans_span': span_pred_results,
+    #                'ss_ds_pair': support_sent_doc_sent_pair_results,
+    #                'encode_ids': encode_id_results} ## for detailed results checking
+    # res_data_frame = DataFrame(result_dict)
+    # ##=================================================
+    # return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
+    #         'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
     return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
-            'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
+            'answer_type_acc': answer_type_accuracy}
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================
@@ -479,7 +481,7 @@ def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, se
             'sp_em': em_i,
             'sp_f1': f1_i,
             'sp_prec': prec_i,
-            'sp_recall':recall_i
+            'sp_recall': recall_i
         })
     return logs, (predicted_labels, doc_sent_pair_list)
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -12,7 +12,7 @@ import torch
 import json
 from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting
-from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame, test_all_steps, log_metrics
+from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame, log_metrics
 from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
@@ -20,6 +20,7 @@ from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from torch.utils.data import DataLoader
 from multihopQA.hotpotQAdataloader import HotpotDevDataset
 from modelEvaluation.hierarchicalDecoder import test_all_steps_hierartical
+from modelEvaluation.multitaskDecoder import test_all_steps
 
 
 def parse_args(args=None):
