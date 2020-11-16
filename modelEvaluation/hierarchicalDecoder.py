@@ -75,7 +75,6 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             topk_support_doc_pred_results += doc_res_dict_i['top_k_doc']
             threshold_support_doc_pred_results += doc_res_dict_i['threshold_doc']
             # **********************************************************************************************************
-
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             topk_sent_res_dict_i = eval_res['topk_sent_pred']
             topk_sent_logs += topk_sent_res_dict_i['log']
@@ -93,7 +92,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             topk_answer_span_results += topk_answer_span_i
             thresh_answer_span_i = eval_res['threshold_span_pred']
             thresh_answer_span_results += thresh_answer_span_i
-            encode_i = eval_res['encode_id']
+            encode_i = sample['ctx_encode'].detach().tolist()
             encode_results += encode_i
             # **********************************************************************************************************
             step += 1
@@ -195,15 +194,12 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, args):
     topk_span_start_end_pair = list(zip(topk_span_start_predictions, topk_span_end_predictions))
     threshold_span_start_end_pair = list(zip(threshold_span_start_predictions, threshold_span_end_predictions))
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    encode_ids = sample['ctx_encode'].detach().tolist()
-    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     res = {'answer_type_pred': (correct_yn, yn_predicted_labels),
            'supp_doc_pred': doc_res_dict,
            'topk_sent_pred': topk_sent_res_dict,
            'threshold_sent_pred': threshold_sent_res_dict,
            'topk_span_pred': topk_span_start_end_pair,
-           'threshold_span_pred': threshold_span_start_end_pair,
-           'encode_id': encode_ids}
+           'threshold_span_pred': threshold_span_start_end_pair}
     return res
 
 def sent_score_extraction(sent_scores: T, doc2sent_idexes: list):
