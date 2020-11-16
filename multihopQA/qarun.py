@@ -153,10 +153,8 @@ def main(args):
                 logging.info('GPU number is {}'.format(available_device_count))
                 if args.gpu_num > available_device_count:
                     args.gpu_num = available_device_count
-                    device_ids = []
-                    for i in range(args.gpu_num - 1, -1, -1):
-                        device_ids.append(i)
-                        device = torch.device("cuda:%d" % i)
+                    device_ids = [i for i in range(args.gpu_num)]
+                    device = torch.device("cuda:{}".format(device_ids[0]))
                 else:
                     device_ids = list(range(args.gpu_num))
                     device = torch.device("cuda:0")
