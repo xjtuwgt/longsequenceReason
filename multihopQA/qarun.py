@@ -80,7 +80,7 @@ def parse_args(args=None):
     parser.add_argument('--valid_steps', default=1000, type=int)
     parser.add_argument('--log_steps', default=50, type=int, help='train log every xx steps')
     parser.add_argument('--test_log_steps', default=10, type=int, help='valid/test log every xx steps')
-    parser.add_argument('--rand_seed', default=12345, type=int, help='random seed')
+    parser.add_argument('--rand_seed', default=43, type=int, help='random seed')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
 
