@@ -156,7 +156,7 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, args):
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     doc_res_dict = hierartical_supp_doc_prediction(doc_scores=doc_scores, mask=doc_mask,
                                        labels=true_doc_labels, doc_start_pos=doc_start_position,
-                                       doc_end_pos=doc_end_position, sent2doc_map=sent2doc_map, top_k=3, threshold=args.doc_threshold)
+                                       doc_end_pos=doc_end_position, sent2doc_map=sent2doc_map, top_k=2, threshold=args.doc_threshold)
     ####################################################################################################################
     ####################################################################################################################
     ####################################################################################################################
