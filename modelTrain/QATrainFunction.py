@@ -234,13 +234,13 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
                 logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
                 logging.info('*' * 75)
                 ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-                dev_data_frame = metric_dict['res_dataframe']
-                date_time_str = get_date_time()
-                dev_result_name = os.path.join(args.save_path,
-                                               date_time_str + '_' + str(step) + "_acc_" + answer_type_acc + '.json')
-                dev_data_frame.to_json(dev_result_name, orient='records')
-                logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
-                logging.info('*' * 75)
+                # dev_data_frame = metric_dict['res_dataframe']
+                # date_time_str = get_date_time()
+                # dev_result_name = os.path.join(args.save_path,
+                #                                date_time_str + '_' + str(step) + "_acc_" + answer_type_acc + '.json')
+                # dev_data_frame.to_json(dev_result_name, orient='records')
+                # logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
+                # logging.info('*' * 75)
                 ##++++++++++++++++++++++++++++++++++++++++++++++++++++
                 if max_sent_pred_f1 < sent_pred_f1:
                     max_sent_pred_f1 = sent_pred_f1
