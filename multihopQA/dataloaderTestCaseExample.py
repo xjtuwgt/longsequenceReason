@@ -362,7 +362,7 @@ def answer_consistent_checker():
     return
 
 if __name__ == '__main__':
-    data_loader_consistent_checker(True)
+    data_loader_consistent_checker(False)
     # data_loader_checker()
     # test_data_loader_checker()
     # data_consistent_checker(train=True)
