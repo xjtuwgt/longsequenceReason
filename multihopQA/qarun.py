@@ -174,9 +174,6 @@ def main(args):
     estimated_max_steps = args.epoch * ((train_data_size // args.batch_size) + 1)
     if estimated_max_steps > args.max_steps:
         args.max_steps = args.epoch * ((train_data_size // args.batch_size) + 1)
-    # else:
-    #     estimated_epoch = args.max_steps // ((train_data_size // args.batch_size) + 1)
-    #     args.epoch = estimated_epoch
     logging.info('Loading development data...')
     dev_data_loader, _ = get_dev_data_loader(args=args)
     logging.info('Loading data completed')
