@@ -33,7 +33,7 @@ def sp_score(prediction, gold):
 ########################################################################################################################
 
 ########################################################################################################################
-def test_all_steps_hierartical(model, device, test_data_loader, args):
+def test_all_steps_hierartical(model, device, test_data_loader, doc_topk, args):
     '''
             Evaluate the reasonModel on test or valid datasets
     '''
@@ -135,7 +135,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
 
 
-def hierartical_metric_computation(output_scores: dict, sample: dict, args):
+def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, args):
     #'yn_score', 'span_score', 'doc_score': (supp_doc_scores, None), 'sent_score':
     yn_scores = output_scores['yn_score']
     yn_true_labels = sample['yes_no']
@@ -155,7 +155,7 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, args):
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     doc_res_dict = hierartical_supp_doc_prediction(doc_scores=doc_scores, mask=doc_mask,
                                        labels=true_doc_labels, doc_start_pos=doc_start_position,
-                                       doc_end_pos=doc_end_position, sent2doc_map=sent2doc_map, top_k=2, threshold=args.doc_threshold)
+                                       doc_end_pos=doc_end_position, sent2doc_map=sent2doc_map, top_k=doc_topk, threshold=args.doc_threshold)
     ####################################################################################################################
     ####################################################################################################################
     ####################################################################################################################
