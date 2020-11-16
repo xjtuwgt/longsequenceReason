@@ -334,8 +334,8 @@ def answer_consistent_checker():
     average_seq_len = 0
     count = 0
     for batch_idx, sample in enumerate(dev_dataloader):
-        if batch_idx % 1000 == 0:
-            print(batch_idx)
+        # if batch_idx % 1000 == 0:
+        #     print(batch_idx)
         ctx_encode = sample['ctx_encode']
         ctx_encode_lens = sample['doc_lens']
 
@@ -373,8 +373,8 @@ if __name__ == '__main__':
     # data_loader_checker()
     # test_data_loader_checker()
     # data_consistent_checker(train=True)
-    # answer_consistent_checker()
-    data, _ = HOTPOT_DevData_Distractor()
-    for r_idx, row in data.iterrows():
-        print('{}\t{}'.format(r_idx, row['answer']))
+    answer_consistent_checker()
+    # data, _ = HOTPOT_DevData_Distractor()
+    # for r_idx, row in data.iterrows():
+    #     print('{}\t{}'.format(r_idx, row['answer']))
     print()
