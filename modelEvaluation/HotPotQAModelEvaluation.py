@@ -170,9 +170,8 @@ def main(model_args):
         logging.info('Hype-parameter\t{} = {}'.format(key, value))
     logging.info('*' * 75)
     logging.info('projection_dim = {}'.format(args.project_dim))
-    logging.info('Testing on dataset...')
+    logging.info('Multi-task encoding')
     logging.info('*' * 75)
-
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     metric_dict = test_all_steps(model=model, device=device, test_data_loader=test_data_loader, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
@@ -193,7 +192,7 @@ def main(model_args):
     logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    logging.info('Hierartical encoding procedure...')
+    logging.info('Hierarchical encoding')
     metric_dict = test_all_steps_hierartical(model=model, device=device, test_data_loader=test_data_loader, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
     logging.info('*' * 75)
