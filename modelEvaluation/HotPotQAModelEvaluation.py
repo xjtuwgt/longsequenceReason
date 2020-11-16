@@ -38,7 +38,7 @@ def parse_args(args=None):
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
     parser.add_argument('--test_batch_size', type=int, default=54)
     parser.add_argument('--doc_topk', type=int, default=2)
-    parser.add_argument('--doc_threshold', type=float, default=0.6)
+    parser.add_argument('--doc_threshold', type=float, default=0.8)
     parser.add_argument('--sent_threshold', type=float, default=0.8)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
