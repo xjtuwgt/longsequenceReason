@@ -30,7 +30,7 @@ def HypeParameterSpace():
     task_name = {'name': 'task_name', 'type': 'choice', 'values': ['doc_sent_ans']} ## doc, doc_sent, doc_sent_ans
     trip_score_name = {'name': 'hop_model_name', 'type': 'fixed', 'value': 'DotProduct'}
     mask_type = {'name': 'mask_name', 'type': 'choice', 'values': ['query_doc']} #'query', 'query_doc', 'query_doc_sent'
-    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [5,6]} #1, 2
+    frozen_layer_num = {'name': 'frozen_layer', 'type': 'choice', 'values': [5, 6]} #1, 2
     span_weight = {'name': 'span_weight', 'type': 'choice', 'values': [0.1, 0.2, 0.5]}
     pair_score_weight = {'name': 'pair_score_weight', 'type': 'choice', 'values': [0.5, 1.0]} #0.1, 0.2, 0.5, 1.0
     train_data_filtered = {'name': 'train_data', 'type': 'choice', 'values': [0]} # 0, 1, 2
@@ -55,11 +55,11 @@ def generate_random_search_bash(task_num):
     search_space = HypeParameterSpace()
     random_search_job =RandomSearchJob(search_space=search_space)
     for i in range(task_num):
-        task_id, parameter_id = random_search_job.single_task_trial(i+1000)
+        task_id, parameter_id = random_search_job.single_task_trial(i+2000)
         with open(bash_save_path + 'run_' + task_id +'.sh', 'w') as rsh_i:
             command_i = 'bash qarun.sh ' + parameter_id
             rsh_i.write(command_i)
     print('{} jobs have been generated'.format(task_num))
 
 if __name__ == '__main__':
-    generate_random_search_bash(task_num=8)
+    generate_random_search_bash(task_num=4)
