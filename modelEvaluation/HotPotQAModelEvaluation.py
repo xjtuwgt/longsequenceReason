@@ -203,7 +203,7 @@ def main(model_args):
         if key.endswith('metrics'):
             logging.info('{} prediction'.format(key))
             log_metrics('Valid', 'final', value)
-    logging.info('*' * 75)
+        logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     dev_data_frame = metric_dict['res_dataframe']
     date_time_str = get_date_time()

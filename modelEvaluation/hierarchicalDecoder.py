@@ -118,7 +118,6 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
     #                                                len(topk_answer_span_results),
     #                                                    len(thresh_answer_span_results),
     #                                                    len(encode_id_results)))
-
     result_dict = {'aty_pred': answer_type_pred_results,
                    'topk_sd_pred': topk_support_doc_pred_results,
                    'thresh_sd_pred': threshold_support_doc_pred_results,
