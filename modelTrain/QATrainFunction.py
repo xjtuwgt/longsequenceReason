@@ -181,7 +181,6 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
         training_warm_up(model=model, optimizer=optimizer, train_dataloader=train_dataloader, device=device, dev_dataloader=dev_dataloader, args=args)
         logging.info('*' * 75)
         current_learning_rate = optimizer.param_groups[-1]['lr']
-        # learning_rate = args.learning_rate * 0.5
         learning_rate = current_learning_rate * 0.5
         optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=args.weight_decay)
         logging.info('Update learning rate from {} to {}'.format(current_learning_rate, learning_rate))
