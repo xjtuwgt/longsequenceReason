@@ -262,7 +262,7 @@ def train_single_step(model, optimizer, train_sample, args):
     elif args.task == 'doc_sent':
         loss = supp_doc_loss + supp_sent_loss + supp_doc_pair_loss * args.pair_score_weight
     elif args.task == 'doc_sent_ans':
-        loss = supp_doc_loss + supp_sent_loss + span_loss * args.span_weight + yn_loss + supp_doc_pair_loss
+        loss = supp_doc_loss + supp_sent_loss + span_loss * args.span_weight + yn_loss + supp_doc_pair_loss * args.pair_score_weight
     else:
         raise ValueError('task %s not supported' % args.task)
     loss.mean().backward()
