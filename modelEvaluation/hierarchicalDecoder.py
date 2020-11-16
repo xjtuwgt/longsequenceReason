@@ -51,7 +51,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
     thresh_support_sent_pred_results, thresh_support_sent_doc_sent_pair_results = [], []
     topk_answer_span_results, thresh_answer_span_results = [], []
     correct_answer_num = 0
-    encode_results = []
+    encode_id_results = []
     # **********************************************************
     with torch.no_grad():
         for test_sample in test_dataset:
@@ -93,7 +93,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             thresh_answer_span_i = eval_res['threshold_span_pred']
             thresh_answer_span_results += thresh_answer_span_i
             encode_i = sample['ctx_encode'].detach().tolist()
-            encode_results += encode_i
+            encode_id_results += encode_i
             # **********************************************************************************************************
             step += 1
             if step % args.test_log_steps == 0:
@@ -118,7 +118,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
                                                    len(thresh_support_sent_doc_sent_pair_results),
                                                    len(topk_answer_span_results),
                                                        len(thresh_answer_span_results),
-                                                       len(encode_results)))
+                                                       len(encode_id_results)))
     result_dict = {'aty_pred': answer_type_pred_results,
                    'topk_sd_pred': topk_support_doc_pred_results,
                    'thresh_sd_pred': threshold_support_doc_pred_results,
@@ -128,7 +128,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
                    'thresh_sps_pred': thresh_support_sent_doc_sent_pair_results,
                    'topk_ans_span': topk_answer_span_results,
                    'thresh_ans_span': thresh_answer_span_results,
-                   'encode_ids': encode_results} ## for detailed results checking
+                   'encode_ids': encode_id_results} ## for detailed results checking
     res_data_frame = DataFrame(result_dict)
     # ##=================================================
     return {'supp_doc_metrics': doc_metrics, 'topk_supp_sent_metrics': topk_sent_metrics,
