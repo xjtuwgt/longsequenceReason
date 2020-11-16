@@ -8,6 +8,7 @@ from time import time
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, get_hotpotqa_longformer_tokenizer
 from multihopUtils.hotpotqaIOUtils import loadWikiData as read_train_dev_data_frame
 from multihopQA.hotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset, HotpotTestDataset
+from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor
 
 def data_loader_consistent_checker(train=True):
     file_path = '../data/hotpotqa/distractor_qa'
@@ -312,9 +313,9 @@ def data_consistent_checker(train=True):
 
 def answer_consistent_checker():
     file_path = '../data/hotpotqa/distractor_qa'
-    dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
+    dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
     from torch.utils.data import DataLoader
-    batch_size = 8
+    batch_size = 1
 
     data_frame = read_train_dev_data_frame(PATH=file_path, json_fileName=dev_file_name)
     # for col in data_frame.columns:
@@ -342,6 +343,7 @@ def answer_consistent_checker():
         answer_end = sample['ans_end'].squeeze(dim=-1)
         doc_start = sample['doc_start'].squeeze(dim=-1)
         doc_end = sample['doc_end'].squeeze(dim=-1)
+        sent_start = sample['sent_start'].squeeze(dim=-1)
         batch_size = ctx_encode.shape[0]
         for id in range(batch_size):
             # doc_token_num = ctx_encode_lens[id].sum().data.item()
@@ -351,10 +353,12 @@ def answer_consistent_checker():
                 average_seq_len = average_seq_len + doc_token_num
                 count = count + 1
             doc_start_i = doc_start[id]
+            sent_start_i = sent_start[id]
             ctx_encode_i = ctx_encode[id]
             ans_start_i = answer_start[id].data.item()
             ans_end_i = answer_end[id].data.item()
-            # decode_answer = longtokenizer.decode(ctx_encode_i[ans_start_i:(ans_end_i +1)])
+            decode_answer = longtokenizer.decode(ctx_encode_i[ans_start_i:(ans_end_i +1)])
+            print('{}\t{}'.format(batch_idx, decode_answer))
             # if '<p>' in decode_answer or '<d>' in decode_answer or '<q>' in decode_answer or '</q>' in decode_answer:
             #     print('index = {}'.format(batch_idx))
             #     print('decode answer {}'.format(decode_answer))
@@ -365,9 +369,12 @@ def answer_consistent_checker():
     return
 
 if __name__ == '__main__':
-    data_loader_consistent_checker(False)
+    # data_loader_consistent_checker(False)
     # data_loader_checker()
     # test_data_loader_checker()
     # data_consistent_checker(train=True)
     # answer_consistent_checker()
+    data, _ = HOTPOT_DevData_Distractor()
+    for r_idx, row in data.iterrows():
+        print('{}\t{}'.format(r_idx, row['answer']))
     print()

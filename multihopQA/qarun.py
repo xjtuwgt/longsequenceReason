@@ -220,8 +220,8 @@ def main(args):
         logging.info('*' * 75)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-        model_save_path = save_check_point(model=model, optimizer=optimizer, step='all_step', loss='final_loss',
-                                     eval_metric='final', args=args)
+        model_save_path = save_check_point(model=model, optimizer=optimizer, step='all_step', loss=None,
+                                     eval_metric=None, args=args)
         logging.info('Saving the mode in {}'.format(model_save_path))
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++
 
