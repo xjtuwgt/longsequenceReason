@@ -88,15 +88,10 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             thresh_support_sent_doc_sent_pair_results += thresh_sent_res_dict_i['doc_sent_pair']
             # **********************************************************************************************************
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            topk_answer_span_i = eval_res['topk_span_pred']
-            topk_answer_span_results += topk_answer_span_i
-            thresh_answer_span_i = eval_res['threshold_span_pred']
-            thresh_answer_span_results += thresh_answer_span_i
-            print(sample['ctx_encode'].shape)
+            topk_answer_span_results += eval_res['topk_span_pred']
+            thresh_answer_span_results += eval_res['threshold_span_pred']
             encode_i = sample['ctx_encode'].detach().tolist()
-            print(len(encode_i))
             encode_id_results += encode_i
-            print(len(encode_id_results))
             # **********************************************************************************************************
             step += 1
             if step % args.test_log_steps == 0:
@@ -114,7 +109,6 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
                    'thresh_ans_span': thresh_answer_span_results,
                    'encode_ids': encode_id_results} ## for detailed results checking
     res_data_frame = DataFrame(result_dict)
-    print(len(encode_id_results))
     doc_metrics, topk_sent_metrics, thresh_sent_metrics = {}, {}, {}
     for metric in doc_logs[0].keys():
         doc_metrics[metric] = sum([log[metric] for log in doc_logs]) / len(doc_logs)
@@ -124,7 +118,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
         thresh_sent_metrics[metric] = sum([log[metric] for log in thresh_sent_logs]) / len(thresh_sent_logs)
     ##=================================================
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
-    print('ans {}\n topk sd {}\n th sd {}\n k ss {}\nt ss {}\n k '
+    print('ans {}\n topk sd {}\n th sd {}\n k ss {}\nt ss {}\n k pair {}\n t pair {} \n k '
           'ans {}\n t ans {}\n encode {}\n'.format(len(answer_type_pred_results),
                                                        len(topk_support_doc_pred_results),
                                                        len(threshold_support_doc_pred_results),
