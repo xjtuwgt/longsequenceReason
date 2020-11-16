@@ -22,13 +22,13 @@ from multihopQA.hotpotQAdataloader import HotpotDevDataset
 from modelEvaluation.hierarchicalDecoder import test_all_steps_hierartical
 
 ######
-MODEL_PATH = '../model/P_MLP_T_DotProduct_pdi_256_bs_8_dn_10_lr_2e-05_fdr_0.1_adr_0.1_awd_1e-06_ep_8_rs_1006_set_0.925_ma_query_doc_fla_6_tda_0_tsu_0_spw_0.1_psw_1.0_wg_0_wgt_0_tn_doc_sent_ans_cfn_0'
+MODEL_PATH = '../model'
 ######
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='Testing Long Sequence Reason Model')
-    parser.add_argument('--model_name', default='60000_0.007160362892318517_0.8174847929473423.pt', help='use GPU')
+    parser.add_argument('--model_name', default='33000_0.2215285514295101_0.7296051866207314.pt', help='use GPU')
     parser.add_argument('--model_config_name', default='config.json', help='use GPU')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
