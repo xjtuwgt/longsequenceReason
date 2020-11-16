@@ -123,8 +123,8 @@ def test_all_steps_hierartical(model, device, test_data_loader, doc_topk, args):
                    'thresh_sd_pred': threshold_support_doc_pred_results,
                    'topk_ss_pred': topk_support_sent_pred_results,
                    'thresh_ss_pred': threshold_support_doc_pred_results,
-                   'topk_sps_pred': topk_support_sent_doc_sent_pair_results,
-                   'thresh_sps_pred': thresh_support_sent_doc_sent_pair_results,
+                   'topk_ds_pair': topk_support_sent_doc_sent_pair_results,
+                   'thresh_ds_pair': thresh_support_sent_doc_sent_pair_results,
                    'topk_ans_span': topk_answer_span_results,
                    'thresh_ans_span': thresh_answer_span_results,
                    'encode_ids': encode_id_results}  ## for detailed results checking

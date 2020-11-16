@@ -64,12 +64,11 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
         support_doc_prediction = row['sd_pred']
         support_sent_prediction = row['ss_pred']
         ss_ds_pair = row['ss_ds_pair']
-        span_start_prediction = row['sps_pred']
-        span_end_prediction = row['spe_pred']
+        span_prediction = row['ans_span']
         encode_ids = row['encode_ids']
         context_docs = row['context']
         if answer_type_prediction == 0:
-            answer_encode_ids = encode_ids[span_start_prediction:span_end_prediction]
+            answer_encode_ids = encode_ids[span_prediction[0]:(span_prediction[1] +1)]
             answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
         elif answer_type_prediction == 1:
             answer_prediction = 'yes'
@@ -107,8 +106,8 @@ def convert2leadboard_hierartical(data: DataFrame, tokenizer: LongformerTokenize
 
         topk_support_sent_prediction = row['topk_ss_pred']
         thresh_support_sent_prediction = row['thresh_ss_pred']
-        topk_ss_ds_pair = row['topk_sps_pred']
-        thresh_ss_ds_pair = row['thresh_sps_pred']
+        topk_ss_ds_pair = row['topk_ds_pair']
+        thresh_ss_ds_pair = row['thresh_ds_pair']
         topk_ans_span = row['topk_ans_span']
         thresh_ans_span = row['thresh_ans_span']
         encode_ids = row['encode_ids']
@@ -130,23 +129,38 @@ def convert2leadboard_hierartical(data: DataFrame, tokenizer: LongformerTokenize
         topk_supp_doc_titles = [context_docs[idx][0] for idx in topk_support_doc_prediction]
         topk_supp_sent_prediction_pair = [topk_ss_ds_pair[idx] for idx in topk_support_sent_prediction]
         topk_supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in topk_supp_sent_prediction_pair]
-        return topk_answer_prediction, topk_supp_doc_titles, topk_supp_title_sent_id
 
-    pred_names = ['answer', 'sp_doc', 'sp']
+        thresh_supp_doc_titles = [context_docs[idx][0] for idx in thresh_support_doc_prediction]
+        thresh_supp_sent_prediction_pair = [thresh_ss_ds_pair[idx] for idx in thresh_support_sent_prediction]
+        thresh_supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in thresh_supp_sent_prediction_pair]
+        return topk_answer_prediction, topk_supp_doc_titles, topk_supp_title_sent_id, thresh_answer_prediction, thresh_supp_doc_titles, thresh_supp_title_sent_id
+
+    pred_names = ['topk_answer', 'topk_sp_doc', 'topk_sp', 'thresh_answer', 'thresh_sp_doc', 'thresh_sp']
     data[pred_names] = data.swifter.apply(lambda row: pd.Series(process_row(row)), axis=1)
-    res_names = ['_id', 'answer', 'sp_doc', 'sp']
 
-    predicted_data = data[res_names]
+    golden_data, _ = HOTPOT_DevData_Distractor()
+    golden_data_dict = golden_data.to_dict(orient='records')
+    ##++++++++++++++++++++++++++++++++
+    topk_res_names = ['_id', 'topk_answer', 'topk_sp_doc', 'topk_sp']
+    predicted_data = data[topk_res_names]
     id_list = predicted_data['_id'].tolist()
-    answer_list = predicted_data['answer'].tolist()
-    sp_list = predicted_data['sp'].tolist()
+    answer_list = predicted_data['topk_answer'].tolist()
+    sp_list = predicted_data['topk_sp'].tolist()
     answer_id_dict = dict(zip(id_list, answer_list))
     sp_id_dict = dict(zip(id_list, sp_list))
     predicted_data_dict = {'answer': answer_id_dict, 'sp': sp_id_dict}
-    golden_data, _ = HOTPOT_DevData_Distractor()
-    golden_data_dict = golden_data.to_dict(orient='records')
-    metrics = json_eval(prediction=predicted_data_dict, gold=golden_data_dict)
-    return metrics
+    topk_metrics = json_eval(prediction=predicted_data_dict, gold=golden_data_dict)
+    ##++++++++++++++++++++++++++++++++
+    topk_res_names = ['_id', 'thresh_answer', 'thresh_sp_doc', 'thresh_sp']
+    predicted_data = data[topk_res_names]
+    id_list = predicted_data['_id'].tolist()
+    answer_list = predicted_data['thresh_answer'].tolist()
+    sp_list = predicted_data['thresh_sp'].tolist()
+    answer_id_dict = dict(zip(id_list, answer_list))
+    sp_id_dict = dict(zip(id_list, sp_list))
+    predicted_data_dict = {'answer': answer_id_dict, 'sp': sp_id_dict}
+    thresh_metrics = json_eval(prediction=predicted_data_dict, gold=golden_data_dict)
+    return topk_metrics, thresh_metrics
 
 ###+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 if __name__ == '__main__':

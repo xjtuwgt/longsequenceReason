@@ -305,11 +305,10 @@ def test_all_steps(model, test_data_loader, device, args):
     N = 0
     total_steps = len(test_dataset)
     # **********************************************************
-    support_doc_pred_results, support_doc_score_results = [], []
-    support_sent_pred_results, support_sent_score_results, support_sent_doc_sent_pair_results = [], [], []
+    support_doc_pred_results = []
+    support_sent_pred_results, support_sent_doc_sent_pair_results = [], []
     answer_type_pred_results = []
-    span_pred_start_results = []
-    span_pred_end_results = []
+    span_pred_results = []
     encode_id_results = []
     correct_answer_num = 0
     # **********************************************************
@@ -329,24 +328,21 @@ def test_all_steps(model, test_data_loader, device, args):
             correct_answer_num += correct_yn
             answer_type_pred_results += yn_predicted_labels
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            span_predicted_start, span_predicted_end = eval_res['answer_span']
-            span_pred_start_results += span_predicted_start
-            span_pred_end_results += span_predicted_end
+            span_predicted_i = eval_res['answer_span']
+            span_pred_results += span_predicted_i
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             encode_ids = eval_res['encode_ids']
             encode_id_results += encode_ids
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             doc_metric_logs, doc_pred_res = eval_res['supp_doc']
             doc_logs += doc_metric_logs
-            doc_predicted_labels, doc_score_list = doc_pred_res
+            doc_predicted_labels = doc_pred_res
             support_doc_pred_results += doc_predicted_labels
-            support_doc_score_results += doc_score_list
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             sent_metric_logs, sent_pred_res = eval_res['supp_sent']
             sent_logs += sent_metric_logs
-            sent_predicted_labels, sent_score_list, doc_sent_fact_pair = sent_pred_res
+            sent_predicted_labels, doc_sent_fact_pair = sent_pred_res
             support_sent_pred_results += sent_predicted_labels
-            support_sent_score_results += sent_score_list
             support_sent_doc_sent_pair_results += doc_sent_fact_pair
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             # ******************************************
@@ -363,10 +359,7 @@ def test_all_steps(model, test_data_loader, device, args):
     result_dict = {'aty_pred': answer_type_pred_results,
                    'sd_pred': support_doc_pred_results,
                    'ss_pred': support_sent_pred_results,
-                   'sps_pred': span_pred_start_results,
-                   'spe_pred': span_pred_end_results,
-                   'sd_score': support_doc_score_results,
-                   'ss_score': support_sent_score_results,
+                   'ans_span': span_pred_results,
                    'ss_ds_pair': support_sent_doc_sent_pair_results,
                    'encode_ids': encode_id_results} ## for detailed results checking
     res_data_frame = DataFrame(result_dict)
@@ -389,6 +382,7 @@ def metric_computation(output_scores: dict, sample: dict, args):
     predicted_span_end = torch.argmax(end_logits, dim=-1)
     predicted_span_start = predicted_span_start.detach().tolist()
     predicted_span_end = predicted_span_end.detach().tolist()
+    predicted_span_pair = list(zip(predicted_span_start, predicted_span_end))
     ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # +++++++++ supp doc prediction +++++++++++++++++++++++++++
     doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
@@ -408,7 +402,7 @@ def metric_computation(output_scores: dict, sample: dict, args):
     encode_ids = sample['ctx_encode'].detach().tolist()
     # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
     return {'answer_type': (correct_yn, yn_predicted_labels),
-            'answer_span': (predicted_span_start, predicted_span_end),
+            'answer_span': predicted_span_pair,
             'supp_doc': (doc_metric_logs, doc_pred_res),
             'supp_sent': (sent_metric_logs, sent_pred_res),
             'encode_ids': encode_ids}
@@ -456,7 +450,7 @@ def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
             'sp_prec': prec_i,
             'sp_recall':recall_i
         })
-    return logs, (predicted_labels, score_list)
+    return logs, predicted_labels
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, sent_fact: T, pred_num=2, threshold=0.8):
@@ -494,7 +488,7 @@ def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, se
             'sp_prec': prec_i,
             'sp_recall':recall_i
         })
-    return logs, (predicted_labels, score_list, doc_sent_pair_list)
+    return logs, (predicted_labels, doc_sent_pair_list)
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
