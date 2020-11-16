@@ -156,11 +156,12 @@ def json_analysis_example(path: str):
     return
 
 def max_log_analysis_example(path: str):
-    max_folder_name, max_supp_sent_f1, max_doc, max_sent, max_answer_type = log_analysis_example(path=path)
-    print('Best performance setting = {}\nwith metric = {}'.format(max_folder_name, max_supp_sent_f1))
-    print('Support document prediction: {}'.format(max_doc))
-    print('Support sentence prediction: {}'.format(max_sent))
-    print('Answer type prediction: {}'.format(max_answer_type))
+    result_folder_analysis(path=path)
+    # max_folder_name, max_supp_sent_f1, max_doc, max_sent, max_answer_type = log_analysis_example(path=path)
+    # print('Best performance setting = {}\nwith metric = {}'.format(max_folder_name, max_supp_sent_f1))
+    # print('Support document prediction: {}'.format(max_doc))
+    # print('Support sentence prediction: {}'.format(max_sent))
+    # print('Answer type prediction: {}'.format(max_answer_type))
     # performance_collection(os.path.join(path, max_folder_name))
     # performance_collection2(os.path.join(path, max_folder_name))
 
