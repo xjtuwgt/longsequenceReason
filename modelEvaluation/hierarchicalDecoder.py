@@ -96,6 +96,7 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             encode_i = sample['ctx_encode'].detach().tolist()
             print(len(encode_i))
             encode_id_results += encode_i
+            print(len(encode_id_results))
             # **********************************************************************************************************
             step += 1
             if step % args.test_log_steps == 0:
