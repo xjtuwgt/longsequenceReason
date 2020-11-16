@@ -63,7 +63,7 @@ def Hotpot_Train_Data_Preprocess(data: DataFrame, tokenizer: LongformerQATensori
                             if has_answer:
                                 encode_has_answer, _, _ = find_answer_span(norm_answer.strip(), supp_sent, tokenizer)
                                 if not encode_has_answer:
-                                    encode_has_answer,  X, Y = find_answer_span(norm_answer, supp_sent, tokenizer)
+                                    encode_has_answer, X, Y = find_answer_span(norm_answer, supp_sent, tokenizer)
                                     if not encode_has_answer:
                                         supp_sent_flags.append((supp_sent_idx, False))
                                         # print('answer {} || sent {}'.format(norm_answer, supp_sent))
