@@ -5,7 +5,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 from modelEvaluation.hotpot_evaluation_collections import performance_collection
 
-MODEL_PATH = '../reasonModel'
+MODEL_PATH = '../model'
 def get_all_folders(path: str):
     directory_contents = os.listdir(path)
     folder_list = []
@@ -161,7 +161,7 @@ def max_log_analysis_example(path: str):
     print('Support document prediction: {}'.format(max_doc))
     print('Support sentence prediction: {}'.format(max_sent))
     print('Answer type prediction: {}'.format(max_answer_type))
-    performance_collection(os.path.join(path, max_folder_name))
+    # performance_collection(os.path.join(path, max_folder_name))
     # performance_collection2(os.path.join(path, max_folder_name))
 
 if __name__ == '__main__':
