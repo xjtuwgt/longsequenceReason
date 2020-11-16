@@ -92,7 +92,9 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
             topk_answer_span_results += topk_answer_span_i
             thresh_answer_span_i = eval_res['threshold_span_pred']
             thresh_answer_span_results += thresh_answer_span_i
+            print(sample['ctx_encode'].shape)
             encode_i = sample['ctx_encode'].detach().tolist()
+            print(len(encode_i))
             encode_id_results += encode_i
             # **********************************************************************************************************
             step += 1
