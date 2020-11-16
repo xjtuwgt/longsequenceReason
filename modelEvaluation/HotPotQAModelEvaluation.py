@@ -25,8 +25,8 @@ from modelEvaluation.hierarchicalDecoder import test_all_steps_hierartical
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='Testing Long Sequence Reason Model')
-    parser.add_argument('--model_name', default='33000_0.2215285514295101_0.7296051866207314.pt', help='use GPU')
-    parser.add_argument('--model_config_name', default='config1.json', help='use GPU')
+    parser.add_argument('--model_name', default='33000_0.2215285514295101_0.7296051866207314.pt', help='saved model name')
+    parser.add_argument('--model_config_name', default='config1.json', help='config_file_name')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     parser.add_argument('--model_path', type=str, default='../model')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -63,7 +63,6 @@ def get_config(PATH, config_json_name):
     for key, value in config_data.items():
         parser.add_argument('--' + key, default=value)
     return parser.parse_args()
-
 
 def get_test_data_loader(args):
     data_frame = read_train_dev_data_frame(file_path=args.data_path, json_fileName=args.dev_data_name)
