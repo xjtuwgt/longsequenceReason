@@ -22,7 +22,6 @@ def get_file_distribution(path: str):
     for item in directory_contents:
         if not os.path.isdir(os.path.join(path, item)):
             last_idx = item.rindex('.')
-            # print(last_idx)
             file_type_name = item[last_idx:]
             if file_type_name not in file_type_dict:
                 file_type_dict[file_type_name] = 1

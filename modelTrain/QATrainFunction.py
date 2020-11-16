@@ -17,9 +17,9 @@ from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEn
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from pandas import DataFrame
 from datetime import date, datetime
-##
+##################################
 MASK_VALUE = -1e9
-##
+##################################
 
 def read_train_dev_data_frame(file_path, json_fileName):
     start_time = time()
@@ -142,11 +142,11 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device,
     training_logs = []
     logging.info('Starting warm up...')
     logging.info('*' * 75)
-    #########
+    ####################################################################################################################
     model.train()
     model.zero_grad()
     all_step_num = len(train_dataloader)
-    #########
+    ####################################################################################################################
     for batch_idx, train_sample in enumerate(train_dataloader):
         log = train_single_step(model=model, optimizer=optimizer, train_sample=train_sample, args=args)
         step = step + 1
@@ -431,7 +431,6 @@ def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
     argsort = torch.argsort(masked_scores, dim=1, descending=True)
     logs = []
     predicted_labels = []
-    true_labels = []
     score_list = []
     for idx in range(batch_size):
         score_list.append(masked_scores[idx].detach().tolist())
@@ -440,7 +439,6 @@ def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
         # +++++++++++++++++
         predicted_labels.append(pred_labels_i)
-        true_labels.append(labels_i)
         # +++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
         logs.append({
@@ -459,27 +457,23 @@ def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, se
     argsort = torch.argsort(masked_scores, dim=1, descending=True)
     logs = []
     predicted_labels = []
-    true_labels = []
-    score_list = []
     doc_sent_pair_list = []
     for idx in range(batch_size):
-        score_list.append(masked_scores[idx].detach().tolist())
-        # ==================
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         doc_fact_i = doc_fact[idx].detach().tolist()
         sent_fact_i = sent_fact[idx].detach().tolist()
         doc_sent_pair_i = list(zip(doc_fact_i, sent_fact_i)) ## pair of (doc_id, sent_id) --> number of pairs = number of all sentences in long sequence
         doc_sent_pair_list.append(doc_sent_pair_i)
-        # ==================
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         pred_idxes_i = argsort[idx].tolist()
         pred_labels_i = pred_idxes_i[:pred_num]
         for i in range(pred_num, sample_size):
             if masked_scores[idx, pred_idxes_i[i]] > threshold * masked_scores[idx, pred_idxes_i[pred_num-1]]:
                 pred_labels_i.append(pred_idxes_i[i])
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
-        # +++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         predicted_labels.append(pred_labels_i)
-        true_labels.append(labels_i)
-        # +++++++++++++++++
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
         logs.append({
             'sp_em': em_i,
@@ -488,5 +482,4 @@ def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, se
             'sp_recall':recall_i
         })
     return logs, (predicted_labels, doc_sent_pair_list)
-####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
