@@ -37,7 +37,7 @@ def parse_args(args=None):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
     parser.add_argument('--test_batch_size', type=int, default=54)
-    parser.add_argument('--doc_threshold', type=float, default=0.8)
+    parser.add_argument('--doc_threshold', type=float, default=0.7)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
 
@@ -161,17 +161,17 @@ def main(model_args):
             model = DataParallel(model, device_ids=device_ids, output_device=device)
             logging.info('Data Parallel model setting')
     ##+++++++++++
-    logging.info('Model Parameter Configuration:')
-    for name, param in model.named_parameters():
-        logging.info('Parameter {}: {}, require_grad = {}'.format(name, str(param.size()), str(param.requires_grad)))
-    logging.info('*' * 75)
-    logging.info("Model hype-parameter information...")
-    for key, value in vars(args).items():
-        logging.info('Hype-parameter\t{} = {}'.format(key, value))
-    logging.info('*' * 75)
-    logging.info('projection_dim = {}'.format(args.project_dim))
-    logging.info('Multi-task encoding')
-    logging.info('*' * 75)
+    # logging.info('Model Parameter Configuration:')
+    # for name, param in model.named_parameters():
+    #     logging.info('Parameter {}: {}, require_grad = {}'.format(name, str(param.size()), str(param.requires_grad)))
+    # logging.info('*' * 75)
+    # logging.info("Model hype-parameter information...")
+    # for key, value in vars(args).items():
+    #     logging.info('Hype-parameter\t{} = {}'.format(key, value))
+    # logging.info('*' * 75)
+    # logging.info('projection_dim = {}'.format(args.project_dim))
+    # logging.info('Multi-task encoding')
+    # logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     metric_dict = test_all_steps(model=model, device=device, test_data_loader=test_data_loader, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
