@@ -35,7 +35,7 @@ def parse_args(args=None):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
     parser.add_argument('--test_batch_size', type=int, default=54)
-    parser.add_argument('--doc_topk', type=int, default=4)
+    parser.add_argument('--doc_topk', type=int, default=2)
     parser.add_argument('--doc_threshold', type=float, default=0.8)
     parser.add_argument('--sent_threshold', type=float, default=0.7)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -178,24 +178,24 @@ def main(model_args):
     logging.info('Multi-task encoding')
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    metric_dict = test_all_steps(model=model, device=device, test_data_loader=test_data_loader, args=args)
-    answer_type_acc = metric_dict['answer_type_acc']
-    logging.info('*' * 75)
-    logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
-    logging.info('*' * 75)
-    for key, value in metric_dict.items():
-        if key.endswith('metrics'):
-            logging.info('{} prediction'.format(key))
-            log_metrics('Valid', 'final', value)
-    logging.info('*' * 75)
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    dev_data_frame = metric_dict['res_dataframe']
-    date_time_str = get_date_time()
-    dev_result_name = os.path.join(args.save_path,
-                                   date_time_str + '_' + args.check_point + '_evaluation.json')
-    dev_data_frame.to_json(dev_result_name, orient='records')
-    logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
-    logging.info('*' * 75)
+    # metric_dict = test_all_steps(model=model, device=device, test_data_loader=test_data_loader, args=args)
+    # answer_type_acc = metric_dict['answer_type_acc']
+    # logging.info('*' * 75)
+    # logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
+    # logging.info('*' * 75)
+    # for key, value in metric_dict.items():
+    #     if key.endswith('metrics'):
+    #         logging.info('{} prediction'.format(key))
+    #         log_metrics('Valid', 'final', value)
+    # logging.info('*' * 75)
+    # ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # dev_data_frame = metric_dict['res_dataframe']
+    # date_time_str = get_date_time()
+    # dev_result_name = os.path.join(args.save_path,
+    #                                date_time_str + '_' + args.check_point + '_evaluation.json')
+    # dev_data_frame.to_json(dev_result_name, orient='records')
+    # logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
+    # logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     logging.info('Hierarchical encoding')
     metric_dict = test_all_steps_hierartical(model=model, device=device, test_data_loader=test_data_loader, doc_topk=model_args.doc_topk, args=args)
