@@ -52,10 +52,11 @@ def save_data_frame_to_json(df: DataFrame, file_name: str):
 ###+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def save_check_point(model, optimizer: Adam, loss, eval_metric, step, args):
     argparse_dict = vars(args)
-    with open(os.path.join(args.save_path, 'config.json'), 'w') as fjson: ## saving model parameters
+    save_model_name = '{}_{:.4f}_{:.4f}'.format(step, loss, eval_metric)
+    with open(os.path.join(args.save_path, 'config_' + save_model_name + '.json'), 'w') as fjson: ## saving model parameters
         json.dump(argparse_dict, fjson)
     model_to_save = model
-    save_path = os.path.join(args.save_path, str(step) + '_' + str(loss) + '_' + str(eval_metric) + '.pt')
+    save_path = os.path.join(args.save_path, 'model_' + save_model_name + '.pt')
     if isinstance(model, torch.nn.DataParallel):
         model_to_save = model.module
     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
