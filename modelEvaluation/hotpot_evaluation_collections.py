@@ -102,7 +102,6 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
 
 
 def convert2leadboard_hierartical(data: DataFrame, tokenizer: LongformerTokenizer):
-
     def process_row(row):
         answer_type_prediction = row['aty_pred']
         topk_support_doc_prediction = row['topk_sd_pred']
@@ -135,6 +134,9 @@ def convert2leadboard_hierartical(data: DataFrame, tokenizer: LongformerTokenize
         else:
             topk_answer_prediction = 'no'
             thresh_answer_prediction = 'no'
+
+        topk_answer_prediction = topk_answer_prediction.strip()
+        thresh_answer_prediction = thresh_answer_prediction.strip()
 
         topk_supp_doc_titles = [context_docs[idx][0] for idx in topk_support_doc_prediction]
         topk_supp_sent_prediction_pair = [topk_ss_ds_pair[idx] for idx in topk_support_sent_prediction]
