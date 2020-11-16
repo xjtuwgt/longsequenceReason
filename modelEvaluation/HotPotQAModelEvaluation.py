@@ -36,7 +36,7 @@ def parse_args(args=None):
     parser.add_argument('--orig_dev_data_name', type=str, default='hotpot_dev_distractor_v1.json')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--dev_data_name', type=str, default='hotpot_dev_distractor_wiki_tokenized.json')
-    parser.add_argument('--test_batch_size', type=int, default=32)
+    parser.add_argument('--test_batch_size', type=int, default=45)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     return parser.parse_args(args)
 
