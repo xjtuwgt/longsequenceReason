@@ -98,17 +98,6 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
                 logging.info('Evaluating the reasonModel... {}/{} in {:.4f} seconds'.format(step, total_steps, time()-start_time))
 
     ###############################################################
-    result_dict = {'aty_pred': answer_type_pred_results,
-                   'topk_sd_pred': topk_support_doc_pred_results,
-                   'thresh_sd_pred': threshold_support_doc_pred_results,
-                   'topk_ss_pred': topk_support_sent_pred_results,
-                   'thresh_ss_pred': threshold_support_doc_pred_results,
-                   'topk_sps_pred': topk_support_sent_doc_sent_pair_results,
-                   'thresh_sps_pred': thresh_support_sent_doc_sent_pair_results,
-                   'topk_ans_span': topk_answer_span_results,
-                   'thresh_ans_span': thresh_answer_span_results,
-                   'encode_ids': encode_id_results} ## for detailed results checking
-    res_data_frame = DataFrame(result_dict)
     doc_metrics, topk_sent_metrics, thresh_sent_metrics = {}, {}, {}
     for metric in doc_logs[0].keys():
         doc_metrics[metric] = sum([log[metric] for log in doc_logs]) / len(doc_logs)
@@ -130,7 +119,17 @@ def test_all_steps_hierartical(model, device, test_data_loader, args):
                                                        len(thresh_answer_span_results),
                                                        len(encode_id_results)))
 
-
+    result_dict = {'aty_pred': answer_type_pred_results,
+                   'topk_sd_pred': topk_support_doc_pred_results,
+                   'thresh_sd_pred': threshold_support_doc_pred_results,
+                   'topk_ss_pred': topk_support_sent_pred_results,
+                   'thresh_ss_pred': threshold_support_doc_pred_results,
+                   'topk_sps_pred': topk_support_sent_doc_sent_pair_results,
+                   'thresh_sps_pred': thresh_support_sent_doc_sent_pair_results,
+                   'topk_ans_span': topk_answer_span_results,
+                   'thresh_ans_span': thresh_answer_span_results,
+                   'encode_ids': encode_id_results}  ## for detailed results checking
+    res_data_frame = DataFrame(result_dict)
     # ##=================================================
     return {'supp_doc_metrics': doc_metrics, 'topk_supp_sent_metrics': topk_sent_metrics,
             'thresh_supp_sent_metrics': thresh_sent_metrics,
