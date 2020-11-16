@@ -8,7 +8,7 @@ from time import time
 import torch
 from pandas import DataFrame
 from torch import Tensor as T
-from multihopUtils.hotpotqaIOUtils import sp_score
+from modelEvaluation.hotpotEvaluationUtils import sp_score
 ##
 MASK_VALUE = -1e9
 ##

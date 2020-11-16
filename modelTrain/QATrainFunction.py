@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 from multihopQA.hotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder, get_hotpotqa_longformer_tokenizer
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
-from pandas import DataFrame
+from modelEvaluation.hotpotEvaluationUtils import sp_score
 from datetime import date, datetime
 ##################################
 MASK_VALUE = -1e9
@@ -226,21 +226,12 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
                 logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
                 sent_pred_f1 = metric_dict['supp_sent_metrics']['sp_f1']
                 logging.info('*' * 75)
-                # log_metrics('Valid', step, metric_dict['metrics'])
                 for key, value in metric_dict.items():
                     if key.endswith('metrics'):
                         logging.info('{} prediction'.format(key))
                         log_metrics('Valid', step, value)
                 logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
                 logging.info('*' * 75)
-                ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-                # dev_data_frame = metric_dict['res_dataframe']
-                # date_time_str = get_date_time()
-                # dev_result_name = os.path.join(args.save_path,
-                #                                date_time_str + '_' + str(step) + "_acc_" + answer_type_acc + '.json')
-                # dev_data_frame.to_json(dev_result_name, orient='records')
-                # logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
-                # logging.info('*' * 75)
                 ##++++++++++++++++++++++++++++++++++++++++++++++++++++
                 if max_sent_pred_f1 < sent_pred_f1:
                     max_sent_pred_f1 = sent_pred_f1
@@ -304,11 +295,6 @@ def test_all_steps(model, test_data_loader, device, args):
     N = 0
     total_steps = len(test_dataset)
     # **********************************************************
-    support_doc_pred_results = []
-    support_sent_pred_results, support_sent_doc_sent_pair_results = [], []
-    answer_type_pred_results = []
-    span_pred_results = []
-    encode_id_results = []
     correct_answer_num = 0
     # **********************************************************
     with torch.no_grad():
@@ -325,24 +311,12 @@ def test_all_steps(model, test_data_loader, device, args):
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             correct_yn, yn_predicted_labels = eval_res['answer_type']
             correct_answer_num += correct_yn
-            answer_type_pred_results += yn_predicted_labels
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            span_predicted_i = eval_res['answer_span']
-            span_pred_results += span_predicted_i
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            encode_ids = eval_res['encode_ids']
-            encode_id_results += encode_ids
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            doc_metric_logs, doc_pred_res = eval_res['supp_doc']
+            doc_metric_logs, _ = eval_res['supp_doc']
             doc_logs += doc_metric_logs
-            doc_predicted_labels = doc_pred_res
-            support_doc_pred_results += doc_predicted_labels
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            sent_metric_logs, sent_pred_res = eval_res['supp_sent']
+            sent_metric_logs, _ = eval_res['supp_sent']
             sent_logs += sent_metric_logs
-            sent_predicted_labels, doc_sent_fact_pair = sent_pred_res
-            support_sent_pred_results += sent_predicted_labels
-            support_sent_doc_sent_pair_results += doc_sent_fact_pair
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             # ******************************************
             step += 1
@@ -355,16 +329,6 @@ def test_all_steps(model, test_data_loader, device, args):
         sent_metrics[metric] = sum([log[metric] for log in sent_logs]) / len(sent_logs)
     ##=================================================
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
-    # result_dict = {'aty_pred': answer_type_pred_results,
-    #                'sd_pred': support_doc_pred_results,
-    #                'ss_pred': support_sent_pred_results,
-    #                'ans_span': span_pred_results,
-    #                'ss_ds_pair': support_sent_doc_sent_pair_results,
-    #                'encode_ids': encode_id_results} ## for detailed results checking
-    # res_data_frame = DataFrame(result_dict)
-    # ##=================================================
-    # return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
-    #         'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
     return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
             'answer_type_acc': answer_type_accuracy}
 
@@ -407,24 +371,6 @@ def metric_computation(output_scores: dict, sample: dict, args):
             'supp_doc': (doc_metric_logs, doc_pred_res),
             'supp_sent': (sent_metric_logs, sent_pred_res),
             'encode_ids': encode_ids}
-
-def sp_score(prediction, gold):
-    cur_sp_pred = set(prediction)
-    gold_sp_pred = set(gold)
-    tp, fp, fn = 0, 0, 0
-    for e in cur_sp_pred:
-        if e in gold_sp_pred:
-            tp += 1
-        else:
-            fp += 1
-    for e in gold_sp_pred:
-        if e not in cur_sp_pred:
-            fn += 1
-    prec = 1.0 * tp / (tp + fp) if tp + fp > 0 else 0.0
-    recall = 1.0 * tp / (tp + fn) if tp + fn > 0 else 0.0
-    f1 = 2 * prec * recall / (prec + recall) if prec + recall > 0 else 0.0
-    em = 1.0 if fp + fn == 0 else 0.0
-    return em, prec, recall, f1
 
 def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
     batch_size, sample_size = scores.shape[0], scores.shape[1]
