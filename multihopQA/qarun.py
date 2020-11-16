@@ -225,13 +225,6 @@ def main(args):
                 log_metrics('Valid', 'final', value)
         logging.info('*' * 75)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-        dev_data_frame = metric_dict['res_dataframe']
-        date_time_str = get_date_time()
-        dev_result_name = os.path.join(args.save_path,
-                                       date_time_str + '_final_acc_' + answer_type_acc + '.json')
-        dev_data_frame.to_json(dev_result_name, orient='records')
-        logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
-        logging.info('*' * 75)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++
         model_save_path = save_check_point(model=model, optimizer=optimizer, step='all_step', loss='final_loss',
                                      eval_metric='final', args=args)
