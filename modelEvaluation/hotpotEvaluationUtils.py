@@ -106,10 +106,10 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
             answer_encode_ids = encode_ids[span_start:(span_end+1)]
             answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
             answer_prediction = answer_prediction.strip()
-            print('pred {}\t true {}'.format(answer_prediction, row['answer']))
+            # print('pred {}\t true {}'.format(answer_prediction, row['answer']))
         else:
             answer_prediction = answer_type_prediction
-            print('pred {}\t true {}'.format(answer_prediction, row['answer']))
+            # print('pred {}\t true {}'.format(answer_prediction, row['answer']))
 
         # supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
         # return answer_prediction, supp_doc_titles, supp_title_sent_id
