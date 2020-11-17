@@ -65,19 +65,6 @@ def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions:
                 end_idx = end_idx + sent_end_i
                 if max_score_i < max_sent_core_i:
                     max_pair_idx = (start_idx, end_idx)
-        # if max_pair_idx is None:
-        #     for sent_idx in range(sent_number):
-        #         if sent_mask[batch_idx][sent_idx] > 0:
-        #             sent_start_i, sent_end_i = sent_start_positions[batch_idx][sent_idx], sent_end_positions[batch_idx][
-        #                 sent_idx]
-        #             sent_start_score_i = start_prob[batch_idx][sent_start_i:(sent_end_i + 1)]
-        #             sent_end_score_i = end_prob[batch_idx][sent_start_i:(sent_end_i + 1)]
-        #             print('start score {}\n {}\n{}'.format(sent_start_score_i,
-        #                                                    start_scores[batch_idx][sent_start_i:(sent_end_i + 1)],
-        #                                                    orig_start_score[batch_idx][sent_start_i:(sent_end_i + 1)]))
-        #             print('end score {}\n{}\n{}'.format(sent_end_score_i,
-        #                                                 end_scores[batch_idx][sent_start_i:(sent_end_i + 1)],
-        #                                                 orig_end_score[batch_idx][sent_start_i:(sent_end_i + 1)]))
         assert max_pair_idx is not None, 'max score {}'.format(max_score_i)
 
         answer_span_pairs.append(max_pair_idx)
