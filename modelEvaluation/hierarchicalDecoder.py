@@ -146,8 +146,7 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, 
     topk_span_start_scores = token_score_extraction(token_scores=span_start_scores, doc_start_end_pair_list=doc_res_dict['top_k_doc2token'])
     topk_span_end_scores = token_score_extraction(token_scores=span_end_scores, doc_start_end_pair_list=doc_res_dict['top_k_doc2token'])
     topk_span_start_end_pair = answer_span_prediction(start_scores=topk_span_start_scores,
-                                                      end_scores=topk_span_end_scores, sent_mask=sent_lens, orig_start_score=span_start_scores,
-                                                      orig_end_score=span_end_scores,
+                                                      end_scores=topk_span_end_scores, sent_mask=sent_lens,
                                                       sent_start_positions=sent_start_position, sent_end_positions=sent_end_position)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     threshold_span_start_scores = token_score_extraction(token_scores=span_start_scores, doc_start_end_pair_list=doc_res_dict['threshold_doc2token'])
@@ -155,8 +154,6 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, 
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     threshold_span_start_end_pair = answer_span_prediction(start_scores=threshold_span_start_scores,
                                                       end_scores=threshold_span_end_scores, sent_mask=sent_lens,
-                                                           orig_start_score=span_start_scores,
-                                                           orig_end_score=span_end_scores,
                                                       sent_start_positions=sent_start_position, sent_end_positions=sent_end_position)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     res = {'answer_type_pred': (correct_num, type_predicted_labels),
