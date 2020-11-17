@@ -9,6 +9,7 @@ import torch
 from pandas import DataFrame
 from torch import Tensor as T
 from modelEvaluation.hotpotEvaluationUtils import sp_score
+from modelEvaluation.hotpotEvaluationUtils import answer_span_prediction, answer_type_prediction
 ########################################################################################################################
 MASK_VALUE = -1e9
 ########################################################################################################################
@@ -59,14 +60,12 @@ def hierartical_decoder(model, device, test_data_loader, doc_topk, args):
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             topk_sent_res_dict_i = eval_res['topk_sent_pred']
             topk_sent_logs += topk_sent_res_dict_i['log']
-            topk_support_sent_pred_results += topk_sent_res_dict_i['prediction']
-            topk_support_sent_doc_sent_pair_results += topk_sent_res_dict_i['doc_sent_pair']
+            topk_support_sent_doc_sent_pair_results += topk_sent_res_dict_i['prediction_label_pair']
             # **********************************************************************************************************
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             thresh_sent_res_dict_i = eval_res['threshold_sent_pred']
             thresh_sent_logs += thresh_sent_res_dict_i['log']
-            thresh_support_sent_pred_results += thresh_sent_res_dict_i['prediction']
-            thresh_support_sent_doc_sent_pair_results += thresh_sent_res_dict_i['doc_sent_pair']
+            thresh_support_sent_doc_sent_pair_results += thresh_sent_res_dict_i['prediction_label_pair']
             # **********************************************************************************************************
             # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             topk_answer_span_results += eval_res['topk_span_pred']
@@ -88,21 +87,23 @@ def hierartical_decoder(model, device, test_data_loader, doc_topk, args):
         thresh_sent_metrics[metric] = sum([log[metric] for log in thresh_sent_logs]) / len(thresh_sent_logs)
     ##=================================================
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
-    result_dict = {'aty_pred': answer_type_pred_results,
-                   'topk_sd_pred': topk_support_doc_pred_results,
-                   'thresh_sd_pred': threshold_support_doc_pred_results,
-                   'topk_ss_pred': topk_support_sent_pred_results,
-                   'thresh_ss_pred': threshold_support_doc_pred_results,
-                   'topk_ds_pair': topk_support_sent_doc_sent_pair_results,
-                   'thresh_ds_pair': thresh_support_sent_doc_sent_pair_results,
-                   'topk_ans_span': topk_answer_span_results,
-                   'thresh_ans_span': thresh_answer_span_results,
-                   'encode_ids': encode_id_results}  ## for detailed results checking
-    res_data_frame = DataFrame(result_dict)
+    topk_dict = {'aty_pred': answer_type_pred_results,
+                   'sd_pred': topk_support_doc_pred_results,
+                   'ss_ds_pair': topk_support_sent_doc_sent_pair_results,
+                   'ans_span': topk_answer_span_results,
+                   'encode_ids': encode_id_results}
+    threshold_dict = {'aty_pred': answer_type_pred_results,
+                   'sd_pred': threshold_support_doc_pred_results,
+                   'ss_ds_pair': thresh_support_sent_doc_sent_pair_results,
+                   'ans_span': thresh_answer_span_results,
+                   'encode_ids': encode_id_results}
+    res_topk_data_frame = DataFrame(topk_dict)
+    res_threshold_data_frame = DataFrame(threshold_dict)
     # ##=================================================
     return {'supp_doc_metrics': doc_metrics, 'topk_supp_sent_metrics': topk_sent_metrics,
             'thresh_supp_sent_metrics': thresh_sent_metrics,
-            'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
+            'answer_type_acc': answer_type_accuracy,
+            'topk_dataframe': res_topk_data_frame, 'thresh_dataframe': res_threshold_data_frame}
 
 
 def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, args):
@@ -111,13 +112,11 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, 
     yn_true_labels = sample['yes_no']
     if len(yn_true_labels.shape) > 1:
         yn_true_labels = yn_true_labels.squeeze(dim=-1)
-    yn_predicted_labels = torch.argmax(yn_scores, dim=-1)
-    correct_yn = (yn_predicted_labels == yn_true_labels).sum().data.item()
-    yn_predicted_labels = yn_predicted_labels.detach().tolist()
+    correct_num, type_predicted_labels = answer_type_prediction(type_scores=yn_scores,
+                                                                true_labels=yn_true_labels)  ## yes, no, span
     ####################################################################################################################
     doc_scores, _ = output_scores['doc_score']
-    doc_mask = sample['doc_lens']
-    true_doc_labels = sample['doc_labels']
+    doc_mask, true_doc_labels = sample['doc_lens'], sample['doc_labels']
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     doc_start_position, doc_end_position = sample['doc_start'], sample['doc_end'] ## doc start and end position for answer span prediction
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,8 +132,7 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, 
     sentIndoc_map = sample['sInd_map'] ## absolute sentence index map to relative sentence index, e.g., 150 sentence indexes to 10 documents
     topk_sent_scores = sent_score_extraction(sent_scores=sent_scores, doc2sent_idexes=doc_res_dict['top_k_sents'])
     threshold_sent_scores = sent_score_extraction(sent_scores=sent_scores, doc2sent_idexes=doc_res_dict['threshold_sents'])
-    true_sent_labels = sample['sent_labels']
-    sent_lens = sample['sent_lens']
+    true_sent_labels, sent_lens = sample['sent_labels'], sample['sent_lens']
     topk_sent_res_dict = supp_sent_predictions(scores=topk_sent_scores, labels=true_sent_labels,
                                                mask=sent_lens, sent2doc_map=sent2doc_map, sentIndoc_map=sentIndoc_map,
                                                pred_num=2, threshold=args.sent_threshold)
@@ -143,27 +141,22 @@ def hierartical_metric_computation(output_scores: dict, sample: dict, doc_topk, 
                                                     threshold=args.sent_threshold)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     span_start_scores, span_end_scores = output_scores['span_score']
+    sent_start_position, sent_end_position = sample['sent_start'], sample['sent_end']
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     topk_span_start_scores = token_score_extraction(token_scores=span_start_scores, doc_start_end_pair_list=doc_res_dict['top_k_doc2token'])
-    topk_span_start_i = torch.argmax(topk_span_start_scores, dim=-1)
-    topk_span_start_i = topk_span_start_i.detach().tolist()
-
     topk_span_end_scores = token_score_extraction(token_scores=span_end_scores, doc_start_end_pair_list=doc_res_dict['top_k_doc2token'])
-    topk_span_end_i = torch.argmax(topk_span_end_scores, dim=-1)
-    topk_span_end_i = topk_span_end_i.detach().tolist()
+    topk_span_start_end_pair = answer_span_prediction(start_scores=topk_span_start_scores,
+                                                      end_scores=topk_span_end_scores, sent_mask=sent_lens,
+                                                      sent_start_positions=sent_start_position, sent_end_positions=sent_end_position)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     threshold_span_start_scores = token_score_extraction(token_scores=span_start_scores, doc_start_end_pair_list=doc_res_dict['threshold_doc2token'])
-    threshold_span_start_i = torch.argmax(threshold_span_start_scores, dim=-1)
-    threshold_span_start_i = threshold_span_start_i.detach().tolist()
-    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     threshold_span_end_scores = token_score_extraction(token_scores=span_end_scores, doc_start_end_pair_list=doc_res_dict['threshold_doc2token'])
-    threshold_span_end_i = torch.argmax(threshold_span_end_scores, dim=-1)
-    threshold_span_end_i = threshold_span_end_i.detach().tolist()
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    topk_span_start_end_pair = list(zip(topk_span_start_i, topk_span_end_i))
-    threshold_span_start_end_pair = list(zip(threshold_span_start_i, threshold_span_end_i))
+    threshold_span_start_end_pair = answer_span_prediction(start_scores=threshold_span_start_scores,
+                                                      end_scores=threshold_span_end_scores, sent_mask=sent_lens,
+                                                      sent_start_positions=sent_start_position, sent_end_positions=sent_end_position)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    res = {'answer_type_pred': (correct_yn, yn_predicted_labels),
+    res = {'answer_type_pred': (correct_num, type_predicted_labels),
            'supp_doc_pred': doc_res_dict,
            'topk_sent_pred': topk_sent_res_dict,
            'threshold_sent_pred': threshold_sent_res_dict,
@@ -194,15 +187,13 @@ def supp_sent_predictions(scores: T, labels: T, mask: T, sent2doc_map: T, sentIn
     masked_scores = scores.masked_fill(mask == 0, -1)
     argsort = torch.argsort(masked_scores, dim=1, descending=True)
     logs = []
-    predicted_labels = []
-    # true_labels = []
-    doc_sent_pair_list = []
+    predicted_label = []
+    predicted_label_pair = []
     for idx in range(batch_size):
         # ============================================================================================================
         doc_fact_i = sent2doc_map[idx].detach().tolist()
         sent_fact_i = sentIndoc_map[idx].detach().tolist()
         doc_sent_pair_i = list(zip(doc_fact_i, sent_fact_i)) ## pair of (doc_id, sent_id) --> number of pairs = number of all sentences in long sequence
-        doc_sent_pair_list.append(doc_sent_pair_i) ## for final leadboard evaluation
         # ============================================================================================================
         pred_idxes_i = argsort[idx].tolist()
         pred_labels_i = pred_idxes_i[:pred_num]
@@ -211,8 +202,9 @@ def supp_sent_predictions(scores: T, labels: T, mask: T, sent2doc_map: T, sentIn
                 pred_labels_i.append(pred_idxes_i[i])
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        predicted_labels.append(pred_labels_i)
-        # true_labels.append(labels_i)
+        pred_label_pair_i = [doc_sent_pair_i[_] for _ in pred_labels_i]
+        predicted_label_pair.append(pred_label_pair_i)
+        predicted_label.append(pred_labels_i)
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
         logs.append({
@@ -221,9 +213,8 @@ def supp_sent_predictions(scores: T, labels: T, mask: T, sent2doc_map: T, sentIn
             'sp_prec': prec_i,
             'sp_recall':recall_i
         })
-    res = {'log': logs, 'prediction': predicted_labels, 'doc_sent_pair': doc_sent_pair_list}
+    res = {'log': logs, 'prediction_label': predicted_label, 'prediction_label_pair': predicted_label_pair}
     return res
-
 
 def hierartical_supp_doc_prediction(doc_scores: T, labels: T, mask: T, doc_start_pos: T, doc_end_pos: T, sent2doc_map, top_k=2, threshold=0.9):
     batch_size, doc_num = doc_scores.shape
