@@ -313,7 +313,6 @@ def metric_computation(output_scores: dict, sample: dict, args):
             'supp_sent': (sent_metric_logs, supp_sent_pred_pair),
             'encode_ids': encode_ids}
 
-
 def support_sent_evaluation(scores: T, labels: T, mask: T, doc_fact: T, sent_fact: T, pred_num=2, threshold=0.8):
     batch_size, sample_size = scores.shape[0], scores.shape[1]
     scores = torch.sigmoid(scores)
