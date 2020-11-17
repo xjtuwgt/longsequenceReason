@@ -76,6 +76,7 @@ def data_loader_consistent_checker(train=True):
         doc_num = doc_start.shape[1]
         print('doc num: {}'.format(doc_start.shape))
         print('marker {}'.format(marker))
+        print('marker shape {}'.format(marker.shape))
 
         for idx in range(ctx_encode.shape[0]):
             ctx_i = ctx_encode[idx]
@@ -86,7 +87,7 @@ def data_loader_consistent_checker(train=True):
             print('*' * 75)
             attention_i = attention[idx]
             attn_idx = (attention_i == 1).nonzero().squeeze()
-            # print('attn text {}'.format(longtokenizer.decode(ctx_i[attn_idx])))
+            print('attn text {}'.format(longtokenizer.decode(ctx_i[attn_idx])))
             sent_start_i = sent_start[idx]
             doc_start_i = doc_start[idx]
             if train:
@@ -107,6 +108,7 @@ def data_loader_consistent_checker(train=True):
             sent_marker = longtokenizer.decode(ctx_i[sent_start_i])
             print('doc: {}\nsent: {}\n{}\n{}'.format(doc_marker, sent_marker, sent_start_i.shape, sent_lens[idx]))
             print('*' * 75)
+
 
             for k in range(doc_num):
                 if k < doc_num - 1:
@@ -341,6 +343,7 @@ def answer_consistent_checker():
         ctx_encode = sample['ctx_encode']
         ctx_encode_lens = sample['doc_lens']
 
+
         answer_start = sample['ans_start'].squeeze(dim=-1)
         answer_end = sample['ans_end'].squeeze(dim=-1)
         doc_start = sample['doc_start'].squeeze(dim=-1)
@@ -375,11 +378,11 @@ def answer_consistent_checker():
     return
 
 if __name__ == '__main__':
-    # data_loader_consistent_checker(False)
+    data_loader_consistent_checker(False)
     # data_loader_checker()
     # test_data_loader_checker()
     # data_consistent_checker(train=True)
-    answer_consistent_checker()
+    # answer_consistent_checker()
     # data, _ = HOTPOT_DevData_Distractor()
     # for r_idx, row in data.iterrows():
     #     print('{}\t{}'.format(r_idx, row['answer']))

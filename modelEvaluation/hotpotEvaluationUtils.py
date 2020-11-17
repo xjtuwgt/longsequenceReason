@@ -93,10 +93,6 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
     start_idx, end_idx = max_idx // sent_len, max_idx % sent_len
     start_idx, end_idx = start_idx.data.item(), end_idx.data.item()
     score = score_matrix[start_idx][end_idx]
-    if score == 0:
-        print('score matrix {}'.format(score_matrix))
-        print('start score {}'.format(start_scores))
-        print('end score {}'.format(end_scores))
     return score, start_idx, end_idx
 
 def add_id_context(data: DataFrame):
