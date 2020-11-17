@@ -182,6 +182,10 @@ def main(model_args):
     tokenizer = get_hotpotqa_longformer_tokenizer()
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    logging.info('Multi-task encoding')
     metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
     logging.info('*' * 75)
