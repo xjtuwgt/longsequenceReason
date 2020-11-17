@@ -65,7 +65,7 @@ def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions:
                 end_idx = end_idx + sent_end_i
                 if max_score_i < max_sent_core_i:
                     max_pair_idx = (start_idx, end_idx)
-        assert max_pair_idx is not None, 'max score {}'.format(max_score_i)
+        assert max_pair_idx is not None, 'max score {}'.format(max_score_i, )
         answer_span_pairs.append(max_pair_idx)
     return answer_span_pairs
 
@@ -82,6 +82,10 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
     start_idx, end_idx = max_idx // sent_len, max_idx % sent_len
     start_idx, end_idx = start_idx.data.item(), end_idx.data.item()
     score = score_matrix[start_idx][end_idx]
+    if score == 0:
+        print('score matrix {}'.format(score_matrix))
+        print('start score {}'.format(start_scores))
+        print('end score {}'.format(end_scores))
     return score, start_idx, end_idx
 
 def add_id_context(data: DataFrame):
