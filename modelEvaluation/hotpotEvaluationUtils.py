@@ -74,7 +74,7 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
     score_matrix = torch.triu(score_matrix)
     if max_ans_decode_len < sent_len:
         trip_len = sent_len - max_ans_decode_len
-        mask_upper_tri = torch.triu(torch.ones((trip_len, trip_len)))
+        mask_upper_tri = torch.triu(torch.ones((trip_len, trip_len))).to(start_scores.device)
         mask_upper_tri = F.pad(mask_upper_tri, [max_ans_decode_len, 0, 0, max_ans_decode_len])
         score_matrix = score_matrix.masked_fill(mask_upper_tri==1, 0)
     max_idx = torch.argmax(score_matrix)
