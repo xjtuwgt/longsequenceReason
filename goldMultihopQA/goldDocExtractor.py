@@ -19,9 +19,10 @@ def Gold_Hotpot_Train_Dev_Data_Collection(data: DataFrame):
         for ctx_idx, ctx in enumerate(contexts):  ## Original ctx index, record the original index order
             title, text = ctx[0], ctx[1]
             if title in positive_titles:
-                pos_context.append(ctx)
-        return pos_context
-    data['context'] = data.swifter.apply(lambda row: pd.Series(pos_context_extraction(row)), axis=1)
+                pos_context.append([title, text])
+        assert len(pos_context) == 2
+        return pos_context, len(pos_context)
+    data[['context', 'pos_num']] = data.swifter.apply(lambda row: pd.Series(pos_context_extraction(row)), axis=1)
     return data
 #########+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

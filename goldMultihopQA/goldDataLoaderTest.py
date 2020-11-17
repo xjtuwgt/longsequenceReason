@@ -11,11 +11,13 @@ from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevD
 
 def data_loader_consistent_checker(train=True):
     file_path = '../data/hotpotqa/distractor_qa'
-    if train:
-        dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
-    else:
-        dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
+    dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
     data_frame = read_train_dev_data_frame(PATH=file_path, json_fileName=dev_file_name)
+
+    file_path = '../data/hotpotqa'
+    dev_file_name = 'gold_hotpot_dev_distractor_v1.json'
+    orig_data_frame = read_train_dev_data_frame(PATH=file_path, json_fileName=dev_file_name)
+
     longtokenizer = get_hotpotqa_longformer_tokenizer()
     hotpot_tensorizer = LongformerQATensorizer(tokenizer=longtokenizer, max_length=4096)
     start_time = time()
@@ -38,101 +40,103 @@ def data_loader_consistent_checker(train=True):
             collate_fn=HotpotDevDataset.collate_fn
         )
 
-    head_two = data_frame.head(batch_size)
-    print(type(head_two))
+    head_two = orig_data_frame.head(batch_size)
+    # print(type(head_two))
     for idx, row in head_two.iterrows():
         context = row['context']
-        supp_fact_filtered = row['supp_facts_filtered']
+        print(context)
+        supp_fact_filtered = row['supporting_facts']
         for supp, sen_idx in supp_fact_filtered:
             print('Support doc: {}, sent id: {}'.format(supp, sen_idx))
             print('-' * 70)
         print()
         print('Query {}'.format(row['question']))
         for doc_idx, doc in enumerate(context):
+            print(type(doc))
             print('doc {}: title = {} \n text = {}'.format(doc_idx + 1, doc[0], ' '.join(doc[1])))
             print('-' * 70)
         print('*' * 70)
         print()
-        print('Original answer = {}'.format(row['norm_answer']))
+        print('Original answer = {}'.format(row['answer']))
         print('=' * 70)
     print('+' * 70)
     print('\n'*5)
-    for batch_idx, sample in enumerate(dev_dataloader):
-        ctx_encode = sample['ctx_encode']
-        doc_start = sample['doc_start'].squeeze(dim=-1)
-        sent_start = sample['sent_start'].squeeze(dim=-1)
-        answer_start = sample['ans_start'].squeeze(dim=-1)
-        answer_end = sample['ans_end'].squeeze(dim=-1)
-        if train:
-            head_idx = sample['head_idx'].squeeze(dim=-1)
-            tail_idx = sample['tail_idx'].squeeze(dim=-1)
-        sent_lens = sample['sent_lens'].squeeze(dim=-1)
-        attention = sample['ctx_attn_mask'].squeeze(dim=-1)
-        global_attenion = sample['ctx_global_mask']
-        print('global attention {}'.format(global_attenion))
-        marker = sample['marker'].squeeze(dim=-1)
-
-        doc_num = doc_start.shape[1]
-        print('doc num: {}'.format(doc_start.shape))
-        print('marker {}'.format(marker))
-        print('marker shape {}'.format(marker.shape))
-
-        for idx in range(ctx_encode.shape[0]):
-            ctx_i = ctx_encode[idx]
-            marker_i = marker[idx]
-
-            marker_idx = marker_i.nonzero().squeeze()
-            print('marker text {}'.format(longtokenizer.decode(ctx_i[marker_idx])))
-            print('*' * 75)
-            attention_i = attention[idx]
-            attn_idx = (attention_i == 1).nonzero().squeeze()
-            print('attn text {}'.format(longtokenizer.decode(ctx_i[attn_idx])))
-            sent_start_i = sent_start[idx]
-            doc_start_i = doc_start[idx]
-            if train:
-                head_i = head_idx[idx].data.item()
-                tail_i = tail_idx[idx].data.item()
-            ans_start_i = answer_start[idx].data.item()
-            ans_end_i = answer_end[idx].data.item()
-
-            print('Decode Query {}'.format(longtokenizer.decode(ctx_i[:doc_start_i[0]])))
-            print('*' * 75)
-            print('Decoded answer = {}'.format(hotpot_tensorizer.to_string(ctx_i[ans_start_i:(ans_end_i + 1)])))
-            print('*' * 75)
-            # print(ans_start_i)
-
-            doc_marker = longtokenizer.decode(ctx_i[doc_start_i])
-            print('doc_marker: {}'.format(doc_marker))
-
-            sent_marker = longtokenizer.decode(ctx_i[sent_start_i])
-            print('doc: {}\nsent: {}\n{}\n{}'.format(doc_marker, sent_marker, sent_start_i.shape, sent_lens[idx]))
-            print('*' * 75)
-
-
-            for k in range(doc_num):
-                if k < doc_num - 1:
-                    # doc_k = hotpot_tensorizer.to_string(ctx_i[doc_start_i[k]:doc_start_i[k+1]])
-                    doc_k = longtokenizer.decode(ctx_i[doc_start_i[k]:doc_start_i[k+1]])
-                else:
-                    # doc_k = hotpot_tensorizer.to_string(ctx_i[doc_start_i[k]:])
-                    doc_k = longtokenizer.decode(ctx_i[doc_start_i[k]:])
-                # print(doc_marker)
-                print('Supp doc {}: text = {}'.format(k+1, doc_k))
-                if train:
-                    if k == head_i:
-                        print('=' * 70)
-                        print('Head positive doc {}: text: {}'.format(head_i + 1, doc_k))
-                        print('=' * 70)
-                    if k == tail_i:
-                        print('=' * 70)
-                        print('Tail positive doc {}: text: {}'.format(tail_i + 1, doc_k))
-                        print('=' * 70)
-                    print('-'*70)
-            print('*' * 70)
-            print()
-        # print(ctx_encode.shape)
-        break
-    print('Runtime = {}'.format(time() - start_time))
+    # for batch_idx, sample in enumerate(dev_dataloader):
+    #     ctx_encode = sample['ctx_encode']
+    #     doc_start = sample['doc_start'].squeeze(dim=-1)
+    #     sent_start = sample['sent_start'].squeeze(dim=-1)
+    #     answer_start = sample['ans_start'].squeeze(dim=-1)
+    #     answer_end = sample['ans_end'].squeeze(dim=-1)
+    #     if train:
+    #         head_idx = sample['head_idx'].squeeze(dim=-1)
+    #         tail_idx = sample['tail_idx'].squeeze(dim=-1)
+    #     sent_lens = sample['sent_lens'].squeeze(dim=-1)
+    #     attention = sample['ctx_attn_mask'].squeeze(dim=-1)
+    #     global_attenion = sample['ctx_global_mask']
+    #     print('global attention {}'.format(global_attenion))
+    #     marker = sample['marker'].squeeze(dim=-1)
+    #
+    #     doc_num = doc_start.shape[1]
+    #     print('doc num: {}'.format(doc_start.shape))
+    #     print('marker {}'.format(marker))
+    #     print('marker shape {}'.format(marker.shape))
+    #
+    #     for idx in range(ctx_encode.shape[0]):
+    #         ctx_i = ctx_encode[idx]
+    #         marker_i = marker[idx]
+    #
+    #         marker_idx = marker_i.nonzero().squeeze()
+    #         print('marker text {}'.format(longtokenizer.decode(ctx_i[marker_idx])))
+    #         print('*' * 75)
+    #         attention_i = attention[idx]
+    #         attn_idx = (attention_i == 1).nonzero().squeeze()
+    #         print('attn text {}'.format(longtokenizer.decode(ctx_i[attn_idx])))
+    #         sent_start_i = sent_start[idx]
+    #         doc_start_i = doc_start[idx]
+    #         if train:
+    #             head_i = head_idx[idx].data.item()
+    #             tail_i = tail_idx[idx].data.item()
+    #         ans_start_i = answer_start[idx].data.item()
+    #         ans_end_i = answer_end[idx].data.item()
+    #
+    #         print('Decode Query {}'.format(longtokenizer.decode(ctx_i[:doc_start_i[0]])))
+    #         print('*' * 75)
+    #         print('Decoded answer = {}'.format(hotpot_tensorizer.to_string(ctx_i[ans_start_i:(ans_end_i + 1)])))
+    #         print('*' * 75)
+    #         # print(ans_start_i)
+    #
+    #         doc_marker = longtokenizer.decode(ctx_i[doc_start_i])
+    #         print('doc_marker: {}'.format(doc_marker))
+    #
+    #         sent_marker = longtokenizer.decode(ctx_i[sent_start_i])
+    #         print('doc: {}\nsent: {}\n{}\n{}'.format(doc_marker, sent_marker, sent_start_i.shape, sent_lens[idx]))
+    #         print('*' * 75)
+    #
+    #
+    #         for k in range(doc_num):
+    #             if k < doc_num - 1:
+    #                 # doc_k = hotpot_tensorizer.to_string(ctx_i[doc_start_i[k]:doc_start_i[k+1]])
+    #                 doc_k = longtokenizer.decode(ctx_i[doc_start_i[k]:doc_start_i[k+1]])
+    #             else:
+    #                 # doc_k = hotpot_tensorizer.to_string(ctx_i[doc_start_i[k]:])
+    #                 doc_k = longtokenizer.decode(ctx_i[doc_start_i[k]:])
+    #             # print(doc_marker)
+    #             print('Supp doc {}: text = {}'.format(k+1, doc_k))
+    #             if train:
+    #                 if k == head_i:
+    #                     print('=' * 70)
+    #                     print('Head positive doc {}: text: {}'.format(head_i + 1, doc_k))
+    #                     print('=' * 70)
+    #                 if k == tail_i:
+    #                     print('=' * 70)
+    #                     print('Tail positive doc {}: text: {}'.format(tail_i + 1, doc_k))
+    #                     print('=' * 70)
+    #                 print('-'*70)
+    #         print('*' * 70)
+    #         print()
+    #     # print(ctx_encode.shape)
+    #     break
+    # print('Runtime = {}'.format(time() - start_time))
 
 
 def data_loader_checker():
