@@ -5,7 +5,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 import pandas as pd
 from pandas import DataFrame
-from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor
+from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor, GOLD_HOTPOT_DevData_Distractor
 from transformers import LongformerTokenizer
 from modelEvaluation.hotpot_evaluate_v1 import json_eval
 from torch import Tensor as T
@@ -89,9 +89,17 @@ def add_id_context(data: DataFrame):
     data[['_id', 'context']] = golden_data[['_id', 'context']]
     return data
 
-def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
+def add_id_context_gold(data: DataFrame):
+    golden_data, _ = GOLD_HOTPOT_DevData_Distractor()
+    data[['_id', 'context']] = golden_data[['_id', 'context']]
+    return
+
+def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer, gold=False):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    data = add_id_context(data=data)
+    if gold:
+        data = add_id_context_gold(data=data)
+    else:
+        data = add_id_context(data=data)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def process_row(row):
         answer_type_prediction = row['aty_pred']
