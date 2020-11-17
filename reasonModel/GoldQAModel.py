@@ -130,8 +130,8 @@ class LongformerHotPotQAModel(nn.Module):
             answer_end_positions = answer_end_positions.squeeze(-1)
         # sometimes the start/end positions are outside our reasonModel inputs, we ignore these terms
         ignored_index = start_logits.size(1)
-        # answer_start_positions.clamp_(0, ignored_index)
-        # answer_end_positions.clamp_(0, ignored_index)
+        answer_start_positions.clamp_(0, ignored_index)
+        answer_end_positions.clamp_(0, ignored_index)
         span_loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
         start_loss = span_loss_fct(start_logits, answer_start_positions)
         end_loss = span_loss_fct(end_logits, answer_end_positions)

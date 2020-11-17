@@ -377,11 +377,11 @@ def answer_consistent_checker():
     return
 
 if __name__ == '__main__':
-    # data_loader_consistent_checker(False)
+    data_loader_consistent_checker(False)
     # data_loader_checker()
     # test_data_loader_checker()
     # data_consistent_checker(train=True)
-    answer_consistent_checker()
+    # answer_consistent_checker()
     # data, _ = HOTPOT_DevData_Distractor()
     # for r_idx, row in data.iterrows():
     #     print('{}\t{}'.format(r_idx, row['answer']))
