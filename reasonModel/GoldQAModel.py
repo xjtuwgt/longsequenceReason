@@ -34,7 +34,7 @@ class LongformerHotPotQAModel(nn.Module):
         self.qa_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
         self.fix_encoder = fix_encoder
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.sent_mlp = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1) if self.score_model_name == 'MLP' else None
+        self.sent_mlp = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1)
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.mask_value = -1e9
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

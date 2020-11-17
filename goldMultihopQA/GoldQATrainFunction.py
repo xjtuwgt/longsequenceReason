@@ -10,7 +10,7 @@ from time import time
 import torch
 from torch import Tensor as T
 from torch.utils.data import DataLoader
-from multihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
+from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder, get_hotpotqa_longformer_tokenizer
 from reasonModel.GoldQAModel import LongformerHotPotQAModel
 from modelEvaluation.hotpotEvaluationUtils import sp_score, answer_type_prediction, answer_span_prediction

@@ -7,7 +7,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 from time import time
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, get_hotpotqa_longformer_tokenizer
 from multihopUtils.hotpotqaIOUtils import loadWikiData as read_train_dev_data_frame
-from multihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
+from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
 
 def data_loader_consistent_checker(train=True):
     file_path = '../data/hotpotqa/distractor_qa'
