@@ -43,10 +43,10 @@ def answer_type_prediction(type_scores: T, true_labels: T):
     return correct_num, type_predicted_labels
 
 def answer_span_prediction(start_scores: T, orig_start_score: T, orig_end_score: T, end_scores: T, sent_start_positions: T, sent_end_positions: T, sent_mask: T):
-    batch_size, seq_len = start_scores.shape[0], start_scores.shape[0]
+    batch_size, seq_len = start_scores.shape[0], start_scores.shape[1]
     start_prob = torch.sigmoid(start_scores)
     end_prob = torch.sigmoid(end_scores)
-    sent_number = sent_start_positions.shape[0]
+    sent_number = sent_start_positions.shape[1]
     if len(sent_start_positions.shape) > 1:
         sent_start_positions = sent_start_positions.unsqueeze(dim=-1)
     if len(sent_end_positions.shape) > 1:
