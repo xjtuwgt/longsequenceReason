@@ -291,7 +291,7 @@ def metric_computation(output_scores: dict, sample: dict, args):
     # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
     return {'answer_type': (correct_yn, yn_predicted_labels),
             'answer_span': predicted_span_pair,
-            'supp_sent': supp_sent_pred_pair,
+            'supp_sent': (sent_metric_logs, supp_sent_pred_pair),
             'encode_ids': encode_ids}
 
 
