@@ -134,10 +134,10 @@ class LongformerHotPotQAModel(nn.Module):
         #########################
         if yn_num > 0:
             ans_batch_idx = (yn_label > 0).nonzero().squeeze()
-            start_logits[ans_batch_idx] = -1
-            end_logits[ans_batch_idx] = -1
-            start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 1
-            end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 1
+            start_logits[ans_batch_idx] = -10
+            end_logits[ans_batch_idx] = -10
+            start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 10
+            end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 10
         #########################
         ignored_index = start_logits.size(1)
         answer_start_positions.clamp_(0, ignored_index)
