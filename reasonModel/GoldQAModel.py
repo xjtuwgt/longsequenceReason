@@ -113,6 +113,7 @@ class LongformerHotPotQAModel(nn.Module):
             yn_label = yn_label.squeeze(dim=-1)
         yn_loss_fct = MultiClassFocalLoss(num_class=3)
         yn_loss = yn_loss_fct.forward(yn_score, yn_label)
+        yn_num = (yn_label > 0).sum().data.item()
         ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sent_score = output_scores['sent_score']
         sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
@@ -124,11 +125,20 @@ class LongformerHotPotQAModel(nn.Module):
         ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         start_logits, end_logits = output_scores['span_score']
         answer_start_positions, answer_end_positions = sample['ans_start'], sample['ans_end']
+
         if len(answer_start_positions.size()) > 1:
             answer_start_positions = answer_start_positions.squeeze(-1)
         if len(answer_end_positions.size()) > 1:
             answer_end_positions = answer_end_positions.squeeze(-1)
         # sometimes the start/end positions are outside our reasonModel inputs, we ignore these terms
+        #########################
+        if yn_num > 0:
+            ans_batch_idx = (yn_label > 0).nonzero().squeeze()
+            start_logits[ans_batch_idx] = -1
+            end_logits[ans_batch_idx] = -1
+            start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 1
+            end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 1
+        #########################
         ignored_index = start_logits.size(1)
         answer_start_positions.clamp_(0, ignored_index)
         answer_end_positions.clamp_(0, ignored_index)
