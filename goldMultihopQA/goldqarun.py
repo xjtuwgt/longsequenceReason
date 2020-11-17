@@ -23,6 +23,9 @@ def parse_args(args=None):
     parser.add_argument('--cuda', action='store_true', help='use GPU')
     parser.add_argument('--do_debug', action='store_true', help='whether')
     parser.add_argument('--do_train', default=True, action='store_true')
+    parser.add_argument('--do_valid', default=True, action='store_true')
+    parser.add_argument('--do_test', action='store_true')
+    parser.add_argument('--evaluate_train', action='store_true', help='Evaluate on training data')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--orig_data_path', type=str, default='../data/hotpotqa')
@@ -38,6 +41,8 @@ def parse_args(args=None):
     parser.add_argument('--gamma', default=2.0, type=float, help='parameter for focal loss')
     parser.add_argument('--alpha', default=1.0, type=float, help='parameter for focal loss')
     ###++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    parser.add_argument('--score_model_name', default='MLP', type=str) #'DotProduct', 'BiLinear', 'MLP'
+    parser.add_argument('--hop_model_name', default='DotProduct', type=str)  # 'DotProduct', 'BiLinear'
     parser.add_argument('--frozen_layer_num', default=5, type=int, help='number of layers for document encoder frozen during training')
     parser.add_argument('--project_dim', default=0, type=int)
     parser.add_argument('--global_mask_type', default='query_doc', type=str) ## query, query_doc, query_doc_sent
@@ -45,7 +50,7 @@ def parse_args(args=None):
     parser.add_argument('--sent_threshold', default=0.9, type=float)
     parser.add_argument('--doc_threshold', default=0.9, type=float)
     parser.add_argument('--max_sent_num', default=150, type=int)
-    parser.add_argument('--max_doc_num', default=2, type=int)
+    parser.add_argument('--max_doc_num', default=10, type=int)
     parser.add_argument('--accumulation_steps', default=0, type=int)
     parser.add_argument('--max_ctx_len', default=4096, type=int)
     parser.add_argument('--weight_decay', default=1e-5, type=float)
@@ -58,14 +63,16 @@ def parse_args(args=None):
     parser.add_argument('--heads', default=8, type=float)
     parser.add_argument('--with_graph', default=0, type=int)
     parser.add_argument('--task', default='doc_sent_ans', type=str) ## doc, doc_sent, doc_sent_ans
+    parser.add_argument('--with_graph_training', default=0, type=int)
     parser.add_argument('--span_weight', default=0.2, type=float)
+    parser.add_argument('--pair_score_weight', default=1.0, type=float)
     parser.add_argument('--seq_project', default=True, action='store_true', help='whether perform sequence projection')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--num_labels', default=2, type=int, help='span prediction label') ##start and end position prediction, seperately
     parser.add_argument('--grad_clip_value', default=1.0, type=float)
     parser.add_argument('-cpu', '--cpu_num', default=12, type=int)
     parser.add_argument('-init', '--init_checkpoint', default=None, type=str)
-    parser.add_argument('-save', '--save_path', default='../goldmodel', type=str)
+    parser.add_argument('-save', '--save_path', default='../model', type=str)
     parser.add_argument('--max_steps', default=60000, type=int)
     parser.add_argument('--epoch', default=8, type=int)
     parser.add_argument('--warm_up_steps', default=2000, type=int)
@@ -194,8 +201,8 @@ def main(args):
         logging.info('projection_dim = {}'.format(args.project_dim))
         logging.info('learning_rate = {}'.format(args.learning_rate))
         logging.info('Start training...')
-        train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader, device=device,
-                        train_dataloader=train_data_loader, args=args)
+        # train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader, device=device,
+        #                 train_dataloader=train_data_loader, args=args)
         logging.info('Completed training in {:.4f} seconds'.format(time() - start_time))
         logging.info('Evaluating on Valid Dataset...')
         metric_dict = test_all_steps(model=model, device=device, test_data_loader=dev_data_loader, args=args)

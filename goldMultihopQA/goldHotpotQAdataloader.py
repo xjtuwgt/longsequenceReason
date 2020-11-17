@@ -58,7 +58,7 @@ def mask_generation(sent_num_docs: list, max_sent_num: int):
 class HotpotTrainDataset(Dataset): ##for training data loader
     def __init__(self, data_frame: DataFrame, hotpot_tensorizer: LongformerQATensorizer,
                  max_doc_num=2, max_sent_num=150, training_shuffle=False,
-                 global_mask_type: str = 'query_doc'):
+                 global_mask_type: str = 'query_doc_sent'):
         self.len = data_frame.shape[0]
         self.data = data_frame
         self.max_token_num = hotpot_tensorizer.max_length
@@ -326,7 +326,7 @@ class HotpotTrainDataset(Dataset): ##for training data loader
 ##**********************************************************************************************************************
 class HotpotDevDataset(Dataset): ##for dev dataloader
     def __init__(self, data_frame: DataFrame, hotpot_tensorizer: LongformerQATensorizer,
-                 max_doc_num=2, max_sent_num=150, global_mask_type: str = 'query_doc'):
+                 max_doc_num=2, max_sent_num=150, global_mask_type: str = 'query_doc_sent'):
         self.len = data_frame.shape[0]
         self.data = data_frame
         self.max_token_num = hotpot_tensorizer.max_length

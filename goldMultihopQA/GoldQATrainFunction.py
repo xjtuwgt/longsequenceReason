@@ -245,7 +245,7 @@ def test_all_steps(model, test_data_loader, device, args):
             else:
                 sample = test_sample
             output = model(sample)
-            N = N + sample['doc_lens'].shape[0]
+            N = N + sample['sent_lens'].shape[0]
             eval_res = metric_computation(output_scores=output, sample=sample, args=args)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             correct_yn, yn_predicted_labels = eval_res['answer_type']
