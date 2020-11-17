@@ -9,6 +9,7 @@ gold_wiki_path = '../data/hotpotqa/'
 abs_distractor_wiki_path = os.path.abspath(distractor_wiki_path)
 from pandas import DataFrame
 from time import time
+import swifter
 
 def Gold_Hotpot_Train_Dev_Data_Collection(data: DataFrame):
     def pos_context_extraction(row):

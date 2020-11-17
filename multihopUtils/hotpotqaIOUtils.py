@@ -18,6 +18,7 @@ hotpot_train_data = 'hotpot_train_v1.1.json'  # _id;answer;question;supporting_f
 hotpot_dev_fullwiki = 'hotpot_dev_fullwiki_v1.json'  # _id;answer;question;supporting_facts;context;type;level
 hotpot_test_fullwiki = 'hotpot_test_fullwiki_v1.json'  # _id; question; context
 hotpot_dev_distractor = 'hotpot_dev_distractor_v1.json'  # _id;answer;question;supporting_facts;context;type;level
+gold_hotpot_dev_distractor = 'gold_hotpot_dev_distractor_v1.json'
 
 def loadWikiData(PATH, json_fileName)->DataFrame:
     start_time = time()
@@ -37,6 +38,11 @@ def HOTPOT_DevData_FullWiki(path=hotpot_path):
 
 def HOTPOT_DevData_Distractor(path=hotpot_path):
     data = loadWikiData(PATH=path, json_fileName=hotpot_dev_distractor)
+    column_names = [col for col in data.columns]
+    return data, column_names
+
+def GOLD_HOTPOT_DevData_Distractor(path=hotpot_path):
+    data = loadWikiData(PATH=path, json_fileName=gold_hotpot_dev_distractor)
     column_names = [col for col in data.columns]
     return data, column_names
 
