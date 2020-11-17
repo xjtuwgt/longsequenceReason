@@ -46,8 +46,6 @@ def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions:
     batch_size, seq_len = start_scores.shape[0], start_scores.shape[1]
     start_prob = torch.sigmoid(start_scores)
     end_prob = torch.sigmoid(end_scores)
-    # start_prob = torch.softmax(start_scores, dim=-1)
-    # end_prob = torch.softmax(end_scores, dim=-1)
     sent_number = sent_start_positions.shape[1]
     if len(sent_start_positions.shape) > 1:
         sent_start_positions = sent_start_positions.unsqueeze(dim=-1)
@@ -89,7 +87,7 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
 
 def add_id_context(data: DataFrame):
     golden_data, _ = HOTPOT_DevData_Distractor()
-    data[['_id', 'context']] = golden_data[['_id', 'context']]
+    data[['_id', 'context', 'answer']] = golden_data[['_id', 'context', 'answer']]
     return data
 
 def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
@@ -109,8 +107,10 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
             answer_encode_ids = encode_ids[span_start:(span_end+1)]
             answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
             answer_prediction = answer_prediction.strip()
+            print('pred {}\t true {}'.format(answer_prediction, row['answer']))
         else:
             answer_prediction = answer_type_prediction
+            print('pred {}\t true {}'.format(answer_prediction, row['answer']))
 
         supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
         supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in supp_sent_prediction_pair]
