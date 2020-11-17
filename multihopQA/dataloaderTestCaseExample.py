@@ -313,11 +313,12 @@ def data_consistent_checker(train=True):
 
 def answer_consistent_checker():
     file_path = '../data/hotpotqa/distractor_qa'
-    dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
+    dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
     from torch.utils.data import DataLoader
     batch_size = 1
 
     data_frame = read_train_dev_data_frame(PATH=file_path, json_fileName=dev_file_name)
+    print(data_frame['answer_len'].max())
     # for col in data_frame.columns:
     #     print(col)
     longtokenizer = get_hotpotqa_longformer_tokenizer()
@@ -333,6 +334,7 @@ def answer_consistent_checker():
     max_seq_len = 0
     average_seq_len = 0
     count = 0
+    max_answer_len = 0
     for batch_idx, sample in enumerate(dev_dataloader):
         # if batch_idx % 1000 == 0:
         #     print(batch_idx)
@@ -350,15 +352,18 @@ def answer_consistent_checker():
             doc_token_num = doc_end[id].detach().tolist()[-1]
             if max_seq_len < doc_token_num:
                 max_seq_len = doc_token_num
-                average_seq_len = average_seq_len + doc_token_num
-                count = count + 1
+            average_seq_len = average_seq_len + doc_token_num
+            count = count + 1
             doc_start_i = doc_start[id]
             sent_start_i = sent_start[id]
             ctx_encode_i = ctx_encode[id]
             ans_start_i = answer_start[id].data.item()
             ans_end_i = answer_end[id].data.item()
+            if max_answer_len < (ans_end_i - ans_start_i) + 1:
+                max_answer_len = (ans_end_i - ans_start_i) + 1
             decode_answer = longtokenizer.decode(ctx_encode_i[ans_start_i:(ans_end_i +1)])
-            print('{}\t{}'.format(batch_idx, decode_answer))
+
+            # print('{}\t{}'.format(batch_idx, decode_answer))
             # if '<p>' in decode_answer or '<d>' in decode_answer or '<q>' in decode_answer or '</q>' in decode_answer:
             #     print('index = {}'.format(batch_idx))
             #     print('decode answer {}'.format(decode_answer))
@@ -366,6 +371,7 @@ def answer_consistent_checker():
             # print('decode answer {}'.format(decode_answer))
 
     print('max seq len: {} average seq len: {}, {}'.format(max_seq_len, average_seq_len/count, count))
+    print('max answer len: {}'.format(max_answer_len))
     return
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ from time import time
 import torch
 from pandas import DataFrame
 from torch import Tensor as T
+from modelEvaluation.hotpotEvaluationUtils import answer_type_prediction
 from modelEvaluation.hotpotEvaluationUtils import sp_score
 ##################################
 MASK_VALUE = -1e9
@@ -86,6 +87,17 @@ def multi_task_decoder(model, test_data_loader, device, args):
     ##=================================================
     return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
             'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
+
+def hotpot_prediction(output_scores: dict, sample: dict,  args):
+    # =========Answer type prediction==========================
+    yn_scores = output_scores['yn_score']
+    yn_true_labels = sample['yes_no']
+    if len(yn_true_labels.shape) > 1:
+        yn_true_labels = yn_true_labels.squeeze(dim=-1)
+    correct_num, type_predicted_labels = answer_type_prediction(type_scores=yn_scores, true_labels=yn_true_labels) ## yes, no, span
+    # =========Answer span prediction==========================
+
+
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================
