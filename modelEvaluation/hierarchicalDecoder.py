@@ -179,9 +179,12 @@ def token_score_extraction(token_scores: T, doc_start_end_pair_list: list):
     temp_scores = torch.empty(batch_size, seq_num).fill_(MASK_VALUE).to(token_scores.device)
     for idx in range(batch_size):
         doc_start_end_i = doc_start_end_pair_list[idx]
+        print(doc_start_end_pair_list)
         for dox_idx, doc_pair in enumerate(doc_start_end_i):
             start_i, end_i = doc_pair
+            print('s: {}, e: {}'.format(start_i, end_i))
             temp_scores[idx][start_i:(end_i+1)] = token_scores[idx][start_i:(end_i+1)]
+            print('s: {}, e: {}'.format(temp_scores[idx][start_i:(end_i+1)], token_scores[idx][start_i:(end_i+1)]))
     return temp_scores
 
 def supp_sent_predictions(scores: T, labels: T, mask: T, sent2doc_map: T, sentIndoc_map: T, pred_num=2, threshold=0.9):
