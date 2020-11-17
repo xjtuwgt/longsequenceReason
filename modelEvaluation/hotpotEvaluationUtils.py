@@ -44,8 +44,10 @@ def answer_type_prediction(type_scores: T, true_labels: T):
 
 def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions: T, sent_end_positions: T, sent_mask: T):
     batch_size, seq_len = start_scores.shape[0], start_scores.shape[1]
-    start_prob = torch.sigmoid(start_scores)
-    end_prob = torch.sigmoid(end_scores)
+    # start_prob = torch.sigmoid(start_scores)
+    # end_prob = torch.sigmoid(end_scores)
+    start_prob = torch.softmax(start_scores, dim=-1)
+    end_prob = torch.softmax(end_scores, dim=-1)
     sent_number = sent_start_positions.shape[1]
     if len(sent_start_positions.shape) > 1:
         sent_start_positions = sent_start_positions.unsqueeze(dim=-1)
