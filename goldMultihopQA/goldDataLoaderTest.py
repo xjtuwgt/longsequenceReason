@@ -365,7 +365,7 @@ def answer_consistent_checker():
                 max_answer_len = (ans_end_i - ans_start_i) + 1
             decode_answer = longtokenizer.decode(ctx_encode_i[ans_start_i:(ans_end_i +1)])
 
-            print('{}\t{}'.format(batch_idx, decode_answer))
+            print('{}\t{}\t{}'.format(batch_idx, decode_answer, ctx_encode.shape))
             # if '<p>' in decode_answer or '<d>' in decode_answer or '<q>' in decode_answer or '</q>' in decode_answer:
             #     print('index = {}'.format(batch_idx))
             #     print('decode answer {}'.format(decode_answer))

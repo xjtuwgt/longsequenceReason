@@ -45,7 +45,7 @@ def parse_args(args=None):
     parser.add_argument('--sent_threshold', default=0.9, type=float)
     parser.add_argument('--doc_threshold', default=0.9, type=float)
     parser.add_argument('--max_sent_num', default=150, type=int)
-    parser.add_argument('--max_doc_num', default=10, type=int)
+    parser.add_argument('--max_doc_num', default=2, type=int)
     parser.add_argument('--accumulation_steps', default=0, type=int)
     parser.add_argument('--max_ctx_len', default=4096, type=int)
     parser.add_argument('--weight_decay', default=1e-5, type=float)
@@ -58,9 +58,7 @@ def parse_args(args=None):
     parser.add_argument('--heads', default=8, type=float)
     parser.add_argument('--with_graph', default=0, type=int)
     parser.add_argument('--task', default='doc_sent_ans', type=str) ## doc, doc_sent, doc_sent_ans
-    parser.add_argument('--with_graph_training', default=0, type=int)
     parser.add_argument('--span_weight', default=0.2, type=float)
-    parser.add_argument('--pair_score_weight', default=1.0, type=float)
     parser.add_argument('--seq_project', default=True, action='store_true', help='whether perform sequence projection')
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--num_labels', default=2, type=int, help='span prediction label') ##start and end position prediction, seperately

@@ -103,18 +103,21 @@ class LongformerHotPotQAModel(nn.Module):
         batch_idx = torch.arange(0, batch_size).view(batch_size, 1).repeat(1, sent_num).to(sequence_output.device)
         sent_embed = sequence_output[batch_idx, sent_position]
         #####++++++++++++++++++++
-        sent_score = self.sent_mlp.forward(sent_embed)
+        sent_score = self.sent_mlp.forward(sent_embed).squeeze(dim=-1)
         return sent_score
 
     def loss_computation(self, output_scores, sample):
         yn_score = output_scores['yn_score']
         yn_label = sample['yes_no']
+        if len(yn_label.shape) > 1:
+            yn_label = yn_label.squeeze(dim=-1)
         yn_loss_fct = MultiClassFocalLoss(num_class=3)
         yn_loss = yn_loss_fct.forward(yn_score, yn_label)
         ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sent_score = output_scores['sent_score']
         sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
         sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+
         sent_score = sent_score.masked_fill(sent_lens == 0, self.mask_value)
         supp_loss_fct = PairwiseCEFocalLoss()
         supp_sent_loss = supp_loss_fct.forward(scores=sent_score, targets=sent_label, target_len=sent_mask)
