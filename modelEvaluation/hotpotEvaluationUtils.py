@@ -95,7 +95,6 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def process_row(row):
         answer_type_prediction = row['aty_pred']
-        # support_doc_prediction = row['sd_pred']
         ss_ds_pair = row['ss_ds_pair']
         supp_sent_prediction_pair = ss_ds_pair
         span_prediction = row['ans_span']
@@ -110,9 +109,6 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
         else:
             answer_prediction = answer_type_prediction
             # print('pred {}\t true {}'.format(answer_prediction, row['answer']))
-
-        # supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
-        # return answer_prediction, supp_doc_titles, supp_title_sent_id
         supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in supp_sent_prediction_pair]
         return answer_prediction, supp_title_sent_id
 
