@@ -313,7 +313,7 @@ def data_consistent_checker(train=True):
 
 def answer_consistent_checker():
     file_path = '../data/hotpotqa/distractor_qa'
-    dev_file_name = 'hotpot_train_distractor_wiki_tokenized.json'
+    dev_file_name = 'hotpot_dev_distractor_wiki_tokenized.json'
     from torch.utils.data import DataLoader
     batch_size = 1
 
