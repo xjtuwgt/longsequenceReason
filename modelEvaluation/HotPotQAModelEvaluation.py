@@ -27,7 +27,7 @@ from modelEvaluation.multitaskDecoder import multi_task_decoder
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='Testing Long Sequence Reason Model')
-    parser.add_argument('--model_name', default='33000_0.2215285514295101_0.7296051866207314.pt', help='saved model name')
+    parser.add_argument('--model_name', default='81000_0.15600890681147575_0.7506295227767376.pt', help='saved model name')
     parser.add_argument('--model_config_name', default='config1.json', help='config_file_name')
     parser.add_argument('--data_path', type=str, default='../data/hotpotqa/distractor_qa')
     parser.add_argument('--model_path', type=str, default='../model')
