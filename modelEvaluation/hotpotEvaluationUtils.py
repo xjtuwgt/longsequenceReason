@@ -66,7 +66,6 @@ def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions:
                 if max_score_i < max_sent_core_i:
                     max_pair_idx = (start_idx, end_idx)
         assert max_pair_idx is not None, 'max score {}'.format(max_score_i)
-
         answer_span_pairs.append(max_pair_idx)
     return answer_span_pairs
 
@@ -87,7 +86,7 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
 
 def add_id_context(data: DataFrame):
     golden_data, _ = HOTPOT_DevData_Distractor()
-    data[['_id', 'context', 'answer']] = golden_data[['_id', 'context', 'answer']]
+    data[['_id', 'context']] = golden_data[['_id', 'context']]
     return data
 
 def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
@@ -96,7 +95,7 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def process_row(row):
         answer_type_prediction = row['aty_pred']
-        support_doc_prediction = row['sd_pred']
+        # support_doc_prediction = row['sd_pred']
         ss_ds_pair = row['ss_ds_pair']
         supp_sent_prediction_pair = ss_ds_pair
         span_prediction = row['ans_span']
@@ -112,13 +111,14 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
             answer_prediction = answer_type_prediction
             print('pred {}\t true {}'.format(answer_prediction, row['answer']))
 
-        supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
+        # supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
+        # return answer_prediction, supp_doc_titles, supp_title_sent_id
         supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in supp_sent_prediction_pair]
-        return answer_prediction, supp_doc_titles, supp_title_sent_id
+        return answer_prediction, supp_title_sent_id
 
-    pred_names = ['answer', 'sp_doc', 'sp']
+    pred_names = ['answer', 'sp']
     data[pred_names] = data.apply(lambda row: pd.Series(process_row(row)), axis=1)
-    res_names = ['_id', 'answer', 'sp_doc', 'sp']
+    res_names = ['_id', 'answer', 'sp']
 
     predicted_data = data[res_names]
     id_list = predicted_data['_id'].tolist()
