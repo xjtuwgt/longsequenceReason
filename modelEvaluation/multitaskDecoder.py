@@ -8,8 +8,9 @@ from time import time
 import torch
 from pandas import DataFrame
 from torch import Tensor as T
-from modelEvaluation.hotpotEvaluationUtils import answer_type_prediction
+from modelEvaluation.hotpotEvaluationUtils import answer_type_prediction, answer_span_prediction
 from modelEvaluation.hotpotEvaluationUtils import sp_score
+from transformers import LongformerTokenizer
 ##################################
 MASK_VALUE = -1e9
 ##################################
@@ -88,7 +89,7 @@ def multi_task_decoder(model, test_data_loader, device, args):
     return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
             'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
 
-def hotpot_prediction(output_scores: dict, sample: dict,  args):
+def hotpot_prediction(output_scores: dict, sample: dict, tokenizer: LongformerTokenizer, args):
     # =========Answer type prediction==========================
     yn_scores = output_scores['yn_score']
     yn_true_labels = sample['yes_no']
@@ -96,8 +97,36 @@ def hotpot_prediction(output_scores: dict, sample: dict,  args):
         yn_true_labels = yn_true_labels.squeeze(dim=-1)
     correct_num, type_predicted_labels = answer_type_prediction(type_scores=yn_scores, true_labels=yn_true_labels) ## yes, no, span
     # =========Answer span prediction==========================
-
-
+    start_logits, end_logits = output_scores['span_score']
+    sent_start_position, sent_end_position, sent_lens = sample['sent_start'], sample['sent_end'], sample['sent_lens']
+    predicted_span_pair = answer_span_prediction(start_scores=start_logits, end_scores=end_logits,
+                                                 sent_start_positions=sent_start_position, sent_end_positions=sent_end_position, sent_mask=sent_lens)
+    # =========Answer span prediction==========================
+    doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
+    doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
+    supp_doc_scores, _ = output_scores['doc_score']
+    doc_metric_logs, doc_pred_res = support_doc_evaluation(scores=supp_doc_scores, labels=doc_label, mask=doc_mask,
+                                                           pred_num=2)
+    # +++++++++ supp doc prediction +++++++++++++++++++++++++++
+    # +++++++++ supp sent prediction +++++++++++++++++++++++++++
+    supp_sent_scores = output_scores['sent_score']
+    sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
+    sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+    sent_fact_doc_idx, sent_fact_sent_idx = sample['s2d_map'], sample['sInd_map']
+    sent_metric_logs, _, sent_pred_res = support_sent_evaluation(scores=supp_sent_scores, labels=sent_label,
+                                                                 mask=sent_mask, pred_num=2,
+                                                                 threshold=args.sent_threshold,
+                                                                 doc_fact=sent_fact_doc_idx,
+                                                                 sent_fact=sent_fact_sent_idx)
+    # +++++++++ supp sent prediction +++++++++++++++++++++++++++
+    # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
+    encode_ids = sample['ctx_encode'].detach().tolist()
+    # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
+    return {'answer_type': (correct_num, type_predicted_labels),
+            'answer_span': predicted_span_pair,
+            'supp_doc': (doc_metric_logs, doc_pred_res),
+            'supp_sent': (sent_metric_logs, sent_pred_res),
+            'encode_ids': encode_ids}
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================
@@ -120,14 +149,14 @@ def metric_computation(output_scores: dict, sample: dict, args):
     doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
     doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
     supp_doc_scores, _ = output_scores['doc_score']
-    doc_metric_logs, doc_pred_res = support_doc_infor_evaluation(scores=supp_doc_scores, labels=doc_label, mask=doc_mask, pred_num=2)
+    doc_metric_logs, doc_pred_res = support_doc_evaluation(scores=supp_doc_scores, labels=doc_label, mask=doc_mask, pred_num=2)
     # +++++++++ supp doc prediction +++++++++++++++++++++++++++
     # +++++++++ supp sent prediction +++++++++++++++++++++++++++
     supp_sent_scores = output_scores['sent_score']
     sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
     sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
     sent_fact_doc_idx, sent_fact_sent_idx = sample['s2d_map'], sample['sInd_map']
-    sent_metric_logs, sent_pred_res = support_sent_infor_evaluation(scores=supp_sent_scores, labels=sent_label, mask=sent_mask, pred_num=2,
+    sent_metric_logs, _, sent_pred_res = support_sent_evaluation(scores=supp_sent_scores, labels=sent_label, mask=sent_mask, pred_num=2,
                                                                threshold=args.sent_threshold, doc_fact=sent_fact_doc_idx, sent_fact=sent_fact_sent_idx)
     # +++++++++ supp sent prediction +++++++++++++++++++++++++++
     # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
@@ -139,7 +168,7 @@ def metric_computation(output_scores: dict, sample: dict, args):
             'supp_sent': (sent_metric_logs, sent_pred_res),
             'encode_ids': encode_ids}
 
-def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
+def support_doc_evaluation(scores: T, labels: T, mask: T, pred_num=2):
     batch_size, sample_size = scores.shape[0], scores.shape[1]
     scores = torch.sigmoid(scores)
     masked_scores = scores.masked_fill(mask == 0, -1)
@@ -152,9 +181,9 @@ def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
         pred_idxes_i = argsort[idx].tolist()
         pred_labels_i = pred_idxes_i[:pred_num]
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
-        # +++++++++++++++++
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++
         predicted_labels.append(pred_labels_i)
-        # +++++++++++++++++
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
         logs.append({
             'sp_em': em_i,
@@ -165,20 +194,19 @@ def support_doc_infor_evaluation(scores: T, labels: T, mask: T, pred_num=2):
     return logs, predicted_labels
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, sent_fact: T, pred_num=2, threshold=0.8):
+def support_sent_evaluation(scores: T, labels: T, mask: T, doc_fact: T, sent_fact: T, pred_num=2, threshold=0.8):
     batch_size, sample_size = scores.shape[0], scores.shape[1]
     scores = torch.sigmoid(scores)
     masked_scores = scores.masked_fill(mask == 0, -1)
     argsort = torch.argsort(masked_scores, dim=1, descending=True)
     logs = []
     predicted_labels = []
-    doc_sent_pair_list = []
+    predicted_label_pairs = []
     for idx in range(batch_size):
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         doc_fact_i = doc_fact[idx].detach().tolist()
         sent_fact_i = sent_fact[idx].detach().tolist()
         doc_sent_pair_i = list(zip(doc_fact_i, sent_fact_i)) ## pair of (doc_id, sent_id) --> number of pairs = number of all sentences in long sequence
-        doc_sent_pair_list.append(doc_sent_pair_i)
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         pred_idxes_i = argsort[idx].tolist()
         pred_labels_i = pred_idxes_i[:pred_num]
@@ -188,6 +216,8 @@ def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, se
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         predicted_labels.append(pred_labels_i)
+        pred_labels_pair_i = [doc_sent_pair_i[_] for _ in predicted_labels]
+        predicted_label_pairs.append(pred_labels_pair_i)
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
         logs.append({
@@ -196,5 +226,5 @@ def support_sent_infor_evaluation(scores: T, labels: T, mask: T, doc_fact: T, se
             'sp_prec': prec_i,
             'sp_recall': recall_i
         })
-    return logs, (predicted_labels, doc_sent_pair_list)
+    return logs, predicted_labels, predicted_label_pairs
 ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
