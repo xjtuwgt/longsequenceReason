@@ -117,7 +117,7 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
         return answer_prediction, supp_doc_titles, supp_title_sent_id
 
     pred_names = ['answer', 'sp_doc', 'sp']
-    data[pred_names] = data.swifter.apply(lambda row: pd.Series(process_row(row)), axis=1)
+    data[pred_names] = data.apply(lambda row: pd.Series(process_row(row)), axis=1)
     res_names = ['_id', 'answer', 'sp_doc', 'sp']
 
     predicted_data = data[res_names]
