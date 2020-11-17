@@ -1,3 +1,13 @@
+import os
+import sys
+PACKAGE_PARENT = '..'
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+import pandas as pd
+from pandas import DataFrame
+from multihopUtils.hotpotqaIOUtils import HOTPOT_DevData_Distractor
+from transformers import LongformerTokenizer
+from modelEvaluation.hotpot_evaluate_v1 import json_eval
 from torch import Tensor as T
 import torch
 import torch.nn.functional as F
@@ -71,3 +81,51 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
     start_idx, end_idx = start_idx.data.item(), end_idx.data.item()
     score = score_matrix[start_idx][end_idx]
     return score, start_idx, end_idx
+
+def add_id_context(data: DataFrame):
+    golden_data, _ = HOTPOT_DevData_Distractor()
+    data[['_id', 'context']] = golden_data[['_id', 'context']]
+    return data
+
+def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    data = add_id_context(data=data)
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def process_row(row):
+        answer_type_prediction = row['aty_pred']
+        support_doc_prediction = row['sd_pred']
+        support_sent_prediction = row['ss_pred']
+        ss_ds_pair = row['ss_ds_pair']
+        span_prediction = row['ans_span']
+        encode_ids = row['encode_ids']
+        context_docs = row['context']
+        if answer_type_prediction == 0:
+            span_start, span_end = span_prediction[0], span_prediction[1]
+            answer_encode_ids = encode_ids[span_start:(span_end+1)]
+            answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
+        elif answer_type_prediction == 1:
+            answer_prediction = 'yes'
+        else:
+            answer_prediction = 'no'
+
+        supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
+        supp_sent_prediction_pair = [ss_ds_pair[idx] for idx in support_sent_prediction]
+        supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in supp_sent_prediction_pair]
+        return answer_prediction, supp_doc_titles, supp_title_sent_id
+
+    pred_names = ['answer', 'sp_doc', 'sp']
+    data[pred_names] = data.swifter.apply(lambda row: pd.Series(process_row(row)), axis=1)
+    res_names = ['_id', 'answer', 'sp_doc', 'sp']
+
+    predicted_data = data[res_names]
+    id_list = predicted_data['_id'].tolist()
+    answer_list = predicted_data['answer'].tolist()
+    sp_list = predicted_data['sp'].tolist()
+    answer_id_dict = dict(zip(id_list, answer_list))
+    sp_id_dict = dict(zip(id_list, sp_list))
+    predicted_data_dict = {'answer': answer_id_dict, 'sp': sp_id_dict}
+    golden_data, _ = HOTPOT_DevData_Distractor()
+    golden_data_dict = golden_data.to_dict(orient='records')
+    metrics = json_eval(prediction=predicted_data_dict, gold=golden_data_dict)
+    res_data_frame = pd.DataFrame.from_dict(predicted_data_dict)
+    return metrics, res_data_frame
