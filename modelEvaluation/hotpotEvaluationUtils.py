@@ -92,7 +92,7 @@ def add_id_context(data: DataFrame):
 def add_id_context_gold(data: DataFrame):
     golden_data, _ = GOLD_HOTPOT_DevData_Distractor()
     data[['_id', 'context']] = golden_data[['_id', 'context']]
-    return
+    return data
 
 def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer, gold=False):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
