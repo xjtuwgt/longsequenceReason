@@ -203,7 +203,7 @@ def main(model_args):
     date_time_str = get_date_time()
     dev_result_name = os.path.join(args.save_path,
                                    date_time_str + '_mt_evaluation.json')
-    dev_data_frame.to_json(res_data_frame, orient='records')
+    res_data_frame.to_json(dev_result_name, orient='records')
     logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
