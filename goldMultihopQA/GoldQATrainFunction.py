@@ -9,7 +9,9 @@ import logging
 from time import time
 import torch
 from torch import Tensor as T
+from pandas import DataFrame
 from torch.utils.data import DataLoader
+from modelEvaluation.hotpotEvaluationUtils import convert2leadBoard
 from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder, get_hotpotqa_longformer_tokenizer
 from reasonModel.GoldQAModel import LongformerHotPotQAModel
@@ -87,7 +89,7 @@ def get_model(args):
     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
     return model
 
-def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device, args):
+def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, tokenizer, args):
     warm_up_steps = args.warm_up_steps
     start_time = time()
     step = 0
@@ -116,7 +118,7 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device,
             logging.info('*' * 75)
             break
     logging.info('Evaluating on Valid Dataset...')
-    metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, device=device, args=args)
+    metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, tokenizer=tokenizer, args=args)
     logging.info('*' * 75)
     logging.info('Answer type prediction accuracy: {}'.format(metric_dict['answer_type_acc']))
     logging.info('*' * 75)
@@ -126,11 +128,11 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, device,
             log_metrics('Valid', 'warm up', value)
         logging.info('*' * 75)
 
-def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, args):
+def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, tokenizer, args):
     assert args.save_checkpoint_steps % args.valid_steps == 0
     warm_up_steps = args.warm_up_steps
     if warm_up_steps > 0:
-        training_warm_up(model=model, optimizer=optimizer, train_dataloader=train_dataloader, device=device, dev_dataloader=dev_dataloader, args=args)
+        training_warm_up(model=model, optimizer=optimizer, train_dataloader=train_dataloader, tokenizer=tokenizer, dev_dataloader=dev_dataloader, args=args)
         logging.info('*' * 75)
         current_learning_rate = optimizer.param_groups[-1]['lr']
         learning_rate = current_learning_rate * 0.5
@@ -170,7 +172,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
             if args.do_valid and step % args.valid_steps == 0:
                 logging.info('*' * 75)
                 logging.info('Evaluating on Valid Data set...')
-                metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args, device=device)
+                metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args, tokenizer=tokenizer)
                 logging.info('*' * 75)
                 answer_type_acc = metric_dict['answer_type_acc']
                 eval_metric = answer_type_acc
@@ -221,7 +223,7 @@ def train_single_step(model, optimizer, train_sample, args):
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++Test steps++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-def test_all_steps(model, test_data_loader, device, args):
+def test_all_steps(model, test_data_loader, tokenizer, args):
     '''
             Evaluate the reasonModel on test or valid datasets
     '''
@@ -233,6 +235,10 @@ def test_all_steps(model, test_data_loader, device, args):
     step = 0
     N = 0
     total_steps = len(test_dataset)
+    support_sent_doc_sent_pair_results = []
+    answer_type_pred_results = []
+    span_pred_results = []
+    encode_id_results = []
     # **********************************************************
     correct_answer_num = 0
     # **********************************************************
@@ -250,10 +256,17 @@ def test_all_steps(model, test_data_loader, device, args):
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             correct_yn, yn_predicted_labels = eval_res['answer_type']
             correct_answer_num += correct_yn
+            answer_type_pred_results += yn_predicted_labels
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            sent_metric_logs, _ = eval_res['supp_sent']
+            sent_metric_logs, sent_pair_pred = eval_res['supp_sent']
             sent_logs += sent_metric_logs
+            support_sent_doc_sent_pair_results += sent_pair_pred
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
+            span_predicted_i = eval_res['answer_span']
+            span_pred_results += span_predicted_i
+            # ******************************************
+            encode_ids = eval_res['encode_ids']
+            encode_id_results += encode_ids
             # ******************************************
             step += 1
             if step % args.test_log_steps == 0:
@@ -263,7 +276,13 @@ def test_all_steps(model, test_data_loader, device, args):
         sent_metrics[metric] = sum([log[metric] for log in sent_logs]) / len(sent_logs)
     ##=================================================
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
-    return {'supp_sent_metrics': sent_metrics, 'answer_type_acc': answer_type_accuracy}
+    result_dict = {'aty_pred': answer_type_pred_results,
+                   'ans_span': span_pred_results,
+                   'ss_ds_pair': support_sent_doc_sent_pair_results,
+                   'encode_ids': encode_id_results} ## for detailed results checking
+    res_data_frame = DataFrame(result_dict)
+    leadboard_metric, _ = convert2leadBoard(data=res_data_frame, tokenizer=tokenizer)
+    return {'supp_sent_metrics': sent_metrics, 'answer_type_acc': answer_type_accuracy, 'lead_board_matrics': leadboard_metric}
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================

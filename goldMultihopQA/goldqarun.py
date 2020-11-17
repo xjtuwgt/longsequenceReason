@@ -14,7 +14,7 @@ from multihopUtils.gpu_utils import gpu_setting, set_seeds
 from goldMultihopQA.GoldQATrainFunction import get_train_data_loader, get_dev_data_loader, get_model
 from modelTrain.QATrainFunction import get_date_time
 from goldMultihopQA.GoldQATrainFunction import train_all_steps, test_all_steps, log_metrics
-from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
+from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, get_hotpotqa_longformer_tokenizer
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(
@@ -176,6 +176,8 @@ def main(args):
     dev_data_loader, _ = get_dev_data_loader(args=args)
     logging.info('Loading data completed')
     logging.info('*'*75)
+    tokenizer = get_hotpotqa_longformer_tokenizer()
+    logging.info('*' * 75)
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     if args.do_train:
         # Set training configuration
@@ -201,11 +203,11 @@ def main(args):
         logging.info('projection_dim = {}'.format(args.project_dim))
         logging.info('learning_rate = {}'.format(args.learning_rate))
         logging.info('Start training...')
-        train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader, device=device,
-                        train_dataloader=train_data_loader, args=args)
+        # train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader, device=device,
+        #                 train_dataloader=train_data_loader, tokenizer=tokenizer, args=args)
         logging.info('Completed training in {:.4f} seconds'.format(time() - start_time))
         logging.info('Evaluating on Valid Dataset...')
-        metric_dict = test_all_steps(model=model, device=device, test_data_loader=dev_data_loader, args=args)
+        metric_dict = test_all_steps(model=model, tokenizer=tokenizer, test_data_loader=dev_data_loader, args=args)
         answer_type_acc = metric_dict['answer_type_acc']
         logging.info('*' * 75)
         logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
