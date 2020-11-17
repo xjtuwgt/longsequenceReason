@@ -282,7 +282,7 @@ def test_all_steps(model, test_data_loader, tokenizer, args):
                    'encode_ids': encode_id_results} ## for detailed results checking
     res_data_frame = DataFrame(result_dict)
     leadboard_metric, _ = convert2leadBoard(data=res_data_frame, tokenizer=tokenizer)
-    return {'supp_sent_metrics': sent_metrics, 'answer_type_acc': answer_type_accuracy, 'lead_board_matrics': leadboard_metric}
+    return {'supp_sent_metrics': sent_metrics, 'answer_type_acc': answer_type_accuracy, 'lead_board_metrics': leadboard_metric}
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================
