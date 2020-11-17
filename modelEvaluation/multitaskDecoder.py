@@ -179,7 +179,7 @@ def support_sent_evaluation(scores: T, labels: T, mask: T, doc_fact: T, sent_fac
         labels_i = (labels[idx] > 0).nonzero(as_tuple=False).squeeze().tolist() ## sentence labels: [0, 1, 2], support doc: [0, 1]. 1 and 2 are support sentences
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         predicted_labels.append(pred_labels_i)
-        pred_labels_pair_i = [doc_sent_pair_i[_] for _ in predicted_labels]
+        pred_labels_pair_i = [doc_sent_pair_i[_] for _ in pred_labels_i]
         predicted_label_pairs.append(pred_labels_pair_i)
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         em_i, prec_i, recall_i, f1_i = sp_score(prediction=pred_labels_i, gold=labels_i)
