@@ -235,7 +235,7 @@ def main(model_args):
     topk_dev_result_name = os.path.join(args.save_path,
                                    date_time_str + '_topk_hi_evaluation.json')
     topk_res_data_frame.to_json(topk_dev_result_name, orient='records')
-    logging.info('Saving {} record results to {}'.format(topk_dev_result_name.shape, topk_dev_result_name))
+    logging.info('Saving {} record results to {}'.format(topk_res_data_frame.shape, topk_dev_result_name))
     logging.info('*' * 75)
     ##=================================================
     thresh_dev_data_frame = metric_dict['thresh_dataframe']
