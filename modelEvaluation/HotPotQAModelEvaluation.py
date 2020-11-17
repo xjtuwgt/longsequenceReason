@@ -185,37 +185,8 @@ def main(model_args):
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    logging.info('Multi-task encoding')
-    metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, args=args)
-    answer_type_acc = metric_dict['answer_type_acc']
-    logging.info('*' * 75)
-    logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
-    logging.info('*' * 75)
-    for key, value in metric_dict.items():
-        if key.endswith('metrics'):
-            logging.info('{} prediction'.format(key))
-            log_metrics('Valid', 'final', value)
-    logging.info('*' * 75)
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    dev_data_frame = metric_dict['res_dataframe']
-    ##################################################
-    leadboard_metric, res_data_frame = convert2leadBoard(data=dev_data_frame, tokenizer=tokenizer)
-    ##=================================================
-    logging.info('*' * 75)
-    log_metrics('Evaluation', step='leadboard', metrics=leadboard_metric)
-    logging.info('*' * 75)
-    date_time_str = get_date_time()
-    dev_result_name = os.path.join(args.save_path,
-                                   date_time_str + '_mt_evaluation.json')
-    res_data_frame.to_json(dev_result_name, orient='records')
-    logging.info('Saving {} record results to {}'.format(res_data_frame.shape, dev_result_name))
-    logging.info('*' * 75)
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # logging.info('Hierarchical encoding')
-    # metric_dict = hierartical_decoder(model=model, device=device, test_data_loader=test_data_loader, doc_topk=model_args.doc_topk, args=args)
+    # logging.info('Multi-task encoding')
+    # metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, args=args)
     # answer_type_acc = metric_dict['answer_type_acc']
     # logging.info('*' * 75)
     # logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
@@ -224,32 +195,61 @@ def main(model_args):
     #     if key.endswith('metrics'):
     #         logging.info('{} prediction'.format(key))
     #         log_metrics('Valid', 'final', value)
-    #     logging.info('*' * 75)
-    # ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # topk_dev_data_frame = metric_dict['topk_dataframe']
-    # ##################################################
-    # topk_leadboard_metric, topk_res_data_frame = convert2leadBoard(data=topk_dev_data_frame, tokenizer=tokenizer)
-    # ##=================================================
-    # log_metrics('Topk Evaluation', step='leadboard', metrics=topk_leadboard_metric)
-    # date_time_str = get_date_time()
-    # topk_dev_result_name = os.path.join(args.save_path,
-    #                                date_time_str + '_topk_hi_evaluation.json')
-    # topk_res_data_frame.to_json(topk_dev_result_name, orient='records')
-    # logging.info('Saving {} record results to {}'.format(topk_dev_result_name.shape, topk_dev_result_name))
     # logging.info('*' * 75)
-    # ##=================================================
-    # thresh_dev_data_frame = metric_dict['thresh_dataframe']
+    # ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # dev_data_frame = metric_dict['res_dataframe']
     # ##################################################
-    # thresh_leadboard_metric, thresh_res_data_frame = convert2leadBoard(data=thresh_dev_data_frame, tokenizer=tokenizer)
-    # log_metrics('Thresh Evaluation', step='leadboard', metrics=thresh_leadboard_metric)
+    # leadboard_metric, res_data_frame = convert2leadBoard(data=dev_data_frame, tokenizer=tokenizer)
     # ##=================================================
+    # logging.info('*' * 75)
+    # log_metrics('Evaluation', step='leadboard', metrics=leadboard_metric)
+    # logging.info('*' * 75)
     # date_time_str = get_date_time()
-    # thresh_dev_result_name = os.path.join(args.save_path,
-    #                                date_time_str + '_thresh_hi_evaluation.json')
-    # thresh_res_data_frame.to_json(thresh_dev_result_name, orient='records')
-    # logging.info('Saving {} record results to {}'.format(thresh_res_data_frame.shape, thresh_dev_result_name))
+    # dev_result_name = os.path.join(args.save_path,
+    #                                date_time_str + '_mt_evaluation.json')
+    # res_data_frame.to_json(dev_result_name, orient='records')
+    # logging.info('Saving {} record results to {}'.format(res_data_frame.shape, dev_result_name))
     # logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    logging.info('Hierarchical encoding')
+    metric_dict = hierartical_decoder(model=model, device=device, test_data_loader=test_data_loader, doc_topk=model_args.doc_topk, args=args)
+    answer_type_acc = metric_dict['answer_type_acc']
+    logging.info('*' * 75)
+    logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
+    logging.info('*' * 75)
+    for key, value in metric_dict.items():
+        if key.endswith('metrics'):
+            logging.info('{} prediction'.format(key))
+            log_metrics('Valid', 'final', value)
+        logging.info('*' * 75)
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++
+    topk_dev_data_frame = metric_dict['topk_dataframe']
+    ##################################################
+    topk_leadboard_metric, topk_res_data_frame = convert2leadBoard(data=topk_dev_data_frame, tokenizer=tokenizer)
+    ##=================================================
+    log_metrics('Topk Evaluation', step='leadboard', metrics=topk_leadboard_metric)
+    date_time_str = get_date_time()
+    topk_dev_result_name = os.path.join(args.save_path,
+                                   date_time_str + '_topk_hi_evaluation.json')
+    topk_res_data_frame.to_json(topk_dev_result_name, orient='records')
+    logging.info('Saving {} record results to {}'.format(topk_dev_result_name.shape, topk_dev_result_name))
+    logging.info('*' * 75)
+    ##=================================================
+    thresh_dev_data_frame = metric_dict['thresh_dataframe']
+    ##################################################
+    thresh_leadboard_metric, thresh_res_data_frame = convert2leadBoard(data=thresh_dev_data_frame, tokenizer=tokenizer)
+    log_metrics('Thresh Evaluation', step='leadboard', metrics=thresh_leadboard_metric)
+    ##=================================================
+    date_time_str = get_date_time()
+    thresh_dev_result_name = os.path.join(args.save_path,
+                                   date_time_str + '_thresh_hi_evaluation.json')
+    thresh_res_data_frame.to_json(thresh_dev_result_name, orient='records')
+    logging.info('Saving {} record results to {}'.format(thresh_res_data_frame.shape, thresh_dev_result_name))
+    logging.info('*' * 75)
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 if __name__ == '__main__':
     main(parse_args())

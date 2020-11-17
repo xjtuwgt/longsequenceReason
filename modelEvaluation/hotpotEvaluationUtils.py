@@ -125,6 +125,7 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
     answer_list = predicted_data['answer'].tolist()
     sp_list = predicted_data['sp'].tolist()
     answer_id_dict = dict(zip(id_list, answer_list))
+
     sp_id_dict = dict(zip(id_list, sp_list))
     predicted_data_dict = {'answer': answer_id_dict, 'sp': sp_id_dict}
     golden_data, _ = HOTPOT_DevData_Distractor()
