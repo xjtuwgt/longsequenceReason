@@ -2,8 +2,8 @@
 
 python -u -c 'import torch; print(torch.__version__)'
 
-CODE_PATH=multihopQA
-SAVE_PATH=model
+CODE_PATH=goldMultihopQA
+SAVE_PATH=goldmodel
 DATA_PATH=data/hotpotqa/distractor_qa
 
 #The first four parameters must be provided
@@ -36,7 +36,7 @@ PRE_TRAIN=${23}
 
 echo "Start Training......"
 
-CUDA_VISIBLE_DEVICES=0,1,2,3 python -u $CODE_PATH/qarun.py --do_train \
+CUDA_VISIBLE_DEVICES=0,1,2,3 python -u $CODE_PATH/goldqarun.py --do_train \
     --cuda \
     --score_model_name $PAIR_SCORE\
     --hop_model_name $TRIPLE_SCORE\
