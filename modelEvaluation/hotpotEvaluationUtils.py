@@ -104,7 +104,7 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
             span_start, span_end = span_prediction[0], span_prediction[1]
             answer_encode_ids = encode_ids[span_start:(span_end+1)]
             answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
-            answer_prediction = answer_prediction.strip()
+            # answer_prediction = answer_prediction.strip()
         else:
             answer_prediction = answer_type_prediction
 
