@@ -281,6 +281,7 @@ def test_all_steps(model, test_data_loader, tokenizer, args):
                    'ss_ds_pair': support_sent_doc_sent_pair_results,
                    'encode_ids': encode_id_results} ## for detailed results checking
     res_data_frame = DataFrame(result_dict)
+    print(res_data_frame.shape)
     leadboard_metric, _ = convert2leadBoard(data=res_data_frame, tokenizer=tokenizer, gold=True)
     return {'supp_sent_metrics': sent_metrics, 'answer_type_acc': answer_type_accuracy, 'lead_board_metrics': leadboard_metric}
 

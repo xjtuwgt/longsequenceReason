@@ -100,6 +100,7 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer, gold=Fals
         data = add_id_context_gold(data=data)
     else:
         data = add_id_context(data=data)
+    print(data.shape)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def process_row(row):
         answer_type_prediction = row['aty_pred']
