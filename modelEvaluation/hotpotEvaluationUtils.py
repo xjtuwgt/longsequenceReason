@@ -42,7 +42,7 @@ def answer_type_prediction(type_scores: T, true_labels: T):
     type_predicted_labels = [ans_type_map[_] for _ in type_predicted_labels]
     return correct_num, type_predicted_labels
 
-def answer_span_prediction(start_scores: T, orig_start_score: T, orig_end_score: T, end_scores: T, sent_start_positions: T, sent_end_positions: T, sent_mask: T):
+def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions: T, sent_end_positions: T, sent_mask: T):
     batch_size, seq_len = start_scores.shape[0], start_scores.shape[1]
     start_prob = torch.sigmoid(start_scores)
     end_prob = torch.sigmoid(end_scores)
@@ -65,20 +65,19 @@ def answer_span_prediction(start_scores: T, orig_start_score: T, orig_end_score:
                 end_idx = end_idx + sent_end_i
                 if max_score_i < max_sent_core_i:
                     max_pair_idx = (start_idx, end_idx)
-
-        if max_pair_idx is None:
-            for sent_idx in range(sent_number):
-                if sent_mask[batch_idx][sent_idx] > 0:
-                    sent_start_i, sent_end_i = sent_start_positions[batch_idx][sent_idx], sent_end_positions[batch_idx][
-                        sent_idx]
-                    sent_start_score_i = start_prob[batch_idx][sent_start_i:(sent_end_i + 1)]
-                    sent_end_score_i = end_prob[batch_idx][sent_start_i:(sent_end_i + 1)]
-                    print('start score {}\n {}\n{}'.format(sent_start_score_i,
-                                                           start_scores[batch_idx][sent_start_i:(sent_end_i + 1)],
-                                                           orig_start_score[batch_idx][sent_start_i:(sent_end_i + 1)]))
-                    print('end score {}\n{}\n{}'.format(sent_end_score_i,
-                                                        end_scores[batch_idx][sent_start_i:(sent_end_i + 1)],
-                                                        orig_end_score[batch_idx][sent_start_i:(sent_end_i + 1)]))
+        # if max_pair_idx is None:
+        #     for sent_idx in range(sent_number):
+        #         if sent_mask[batch_idx][sent_idx] > 0:
+        #             sent_start_i, sent_end_i = sent_start_positions[batch_idx][sent_idx], sent_end_positions[batch_idx][
+        #                 sent_idx]
+        #             sent_start_score_i = start_prob[batch_idx][sent_start_i:(sent_end_i + 1)]
+        #             sent_end_score_i = end_prob[batch_idx][sent_start_i:(sent_end_i + 1)]
+        #             print('start score {}\n {}\n{}'.format(sent_start_score_i,
+        #                                                    start_scores[batch_idx][sent_start_i:(sent_end_i + 1)],
+        #                                                    orig_start_score[batch_idx][sent_start_i:(sent_end_i + 1)]))
+        #             print('end score {}\n{}\n{}'.format(sent_end_score_i,
+        #                                                 end_scores[batch_idx][sent_start_i:(sent_end_i + 1)],
+        #                                                 orig_end_score[batch_idx][sent_start_i:(sent_end_i + 1)]))
         assert max_pair_idx is not None, 'max score {}'.format(max_score_i)
 
         answer_span_pairs.append(max_pair_idx)
