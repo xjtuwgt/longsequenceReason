@@ -520,3 +520,43 @@ def sp_score(prediction, gold):
 # dev_data_frame.to_json(dev_result_name, orient='records')
 # logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
 # logging.info('*' * 75)
+
+# def metric_computation(output_scores: dict, sample: dict, args):
+#     # =========Answer type prediction==========================
+#     yn_scores = output_scores['yn_score']
+#     yn_true_labels = sample['yes_no']
+#     if len(yn_true_labels.shape) > 1:
+#         yn_true_labels = yn_true_labels.squeeze(dim=-1)
+#     yn_predicted_labels = torch.argmax(yn_scores, dim=-1)
+#     correct_yn = (yn_predicted_labels == yn_true_labels).sum().data.item()
+#     yn_predicted_labels = yn_predicted_labels.detach().tolist()
+#     # =========Answer span prediction==========================
+#     start_logits, end_logits = output_scores['span_score']
+#     predicted_span_start = torch.argmax(start_logits, dim=-1)
+#     predicted_span_end = torch.argmax(end_logits, dim=-1)
+#     predicted_span_start = predicted_span_start.detach().tolist()
+#     predicted_span_end = predicted_span_end.detach().tolist()
+#     predicted_span_pair = list(zip(predicted_span_start, predicted_span_end))
+#     ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#     # +++++++++ supp doc prediction +++++++++++++++++++++++++++
+#     doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
+#     doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
+#     supp_doc_scores, _ = output_scores['doc_score']
+#     doc_metric_logs, doc_pred_res = support_doc_evaluation(scores=supp_doc_scores, labels=doc_label, mask=doc_mask, pred_num=2)
+#     # +++++++++ supp doc prediction +++++++++++++++++++++++++++
+#     # +++++++++ supp sent prediction +++++++++++++++++++++++++++
+#     supp_sent_scores = output_scores['sent_score']
+#     sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
+#     sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+#     sent_fact_doc_idx, sent_fact_sent_idx = sample['s2d_map'], sample['sInd_map']
+#     sent_metric_logs, _, sent_pred_res = support_sent_evaluation(scores=supp_sent_scores, labels=sent_label, mask=sent_mask, pred_num=2,
+#                                                                threshold=args.sent_threshold, doc_fact=sent_fact_doc_idx, sent_fact=sent_fact_sent_idx)
+#     # +++++++++ supp sent prediction +++++++++++++++++++++++++++
+#     # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
+#     encode_ids = sample['ctx_encode'].detach().tolist()
+#     # +++++++++ encode ids +++++++++++++++++++++++++++++++++++++
+#     return {'answer_type': (correct_yn, yn_predicted_labels),
+#             'answer_span': predicted_span_pair,
+#             'supp_doc': (doc_metric_logs, doc_pred_res),
+#             'supp_sent': (sent_metric_logs, sent_pred_res),
+#             'encode_ids': encode_ids}

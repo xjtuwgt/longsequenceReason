@@ -11,6 +11,7 @@ from modelEvaluation.hotpot_evaluate_v1 import json_eval
 from torch import Tensor as T
 import torch
 import torch.nn.functional as F
+import swifter
 MAX_ANSWER_DECODE_LEN = 50
 
 ########################################################################################################################
@@ -96,20 +97,20 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
         support_doc_prediction = row['sd_pred']
         support_sent_prediction = row['ss_pred']
         ss_ds_pair = row['ss_ds_pair']
+        assert len(support_sent_prediction) == len(ss_ds_pair)
+        supp_sent_prediction_pair = ss_ds_pair
         span_prediction = row['ans_span']
         encode_ids = row['encode_ids']
         context_docs = row['context']
-        if answer_type_prediction == 0:
+        if answer_type_prediction == 'span':
             span_start, span_end = span_prediction[0], span_prediction[1]
             answer_encode_ids = encode_ids[span_start:(span_end+1)]
             answer_prediction = tokenizer.decode(answer_encode_ids, skip_special_tokens=True)
-        elif answer_type_prediction == 1:
-            answer_prediction = 'yes'
+            answer_prediction = answer_prediction.strip()
         else:
-            answer_prediction = 'no'
+            answer_prediction = answer_type_prediction
 
         supp_doc_titles = [context_docs[idx][0] for idx in support_doc_prediction]
-        supp_sent_prediction_pair = [ss_ds_pair[idx] for idx in support_sent_prediction]
         supp_title_sent_id = [(context_docs[x[0]][0], x[1]) for x in supp_sent_prediction_pair]
         return answer_prediction, supp_doc_titles, supp_title_sent_id
 
