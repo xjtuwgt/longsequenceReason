@@ -25,7 +25,7 @@ class PositionwiseFeedForward(nn.Module):
 ########################################################################################################################
 ########################################################################################################################
 class LongformerHotPotQAModel(nn.Module):
-    def __init__(self, longformer: LongformerEncoder, num_labels: int, args, fix_encoder=False):
+    def __init__(self, longformer: LongformerEncoder, num_labels: int, fix_encoder=False):
         super().__init__()
         self.num_labels = num_labels
         self.longformer = longformer
