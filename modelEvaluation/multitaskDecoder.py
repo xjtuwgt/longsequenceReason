@@ -62,11 +62,10 @@ def multi_task_decoder(model, test_data_loader, tokenizer, device, args):
             doc_predicted_labels = doc_pred_res
             support_doc_pred_results += doc_predicted_labels
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            sent_metric_logs, sent_pred_res = eval_res['supp_sent']
+            sent_metric_logs, sent_abs_pred, sent_pair_pred = eval_res['supp_sent']
             sent_logs += sent_metric_logs
-            sent_predicted_labels, doc_sent_fact_pair = sent_pred_res
-            support_sent_pred_results += sent_predicted_labels
-            support_sent_doc_sent_pair_results += doc_sent_fact_pair
+            support_sent_pred_results += sent_abs_pred
+            support_sent_doc_sent_pair_results += sent_pair_pred
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             # ******************************************
             step += 1
