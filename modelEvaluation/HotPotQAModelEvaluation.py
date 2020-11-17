@@ -13,7 +13,7 @@ import json
 from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting
 from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame, log_metrics
-from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
+from modelEvaluation.hotpotEvaluationUtils import convert2leadBoard
 
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
@@ -182,7 +182,7 @@ def main(model_args):
     tokenizer = get_hotpotqa_longformer_tokenizer()
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, tokenizer=tokenizer, args=args)
+    metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
     logging.info('*' * 75)
     logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
@@ -194,10 +194,16 @@ def main(model_args):
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
     dev_data_frame = metric_dict['res_dataframe']
+    ##################################################
+    leadboard_metric, res_data_frame = convert2leadBoard(data=dev_data_frame, tokenizer=tokenizer)
+    ##=================================================
+    logging.info('*' * 75)
+    log_metrics('Evaluation', step='leadboard', metrics=leadboard_metric)
+    logging.info('*' * 75)
     date_time_str = get_date_time()
     dev_result_name = os.path.join(args.save_path,
                                    date_time_str + '_mt_evaluation.json')
-    dev_data_frame.to_json(dev_result_name, orient='records')
+    dev_data_frame.to_json(res_data_frame, orient='records')
     logging.info('Saving {} record results to {}'.format(dev_data_frame.shape, dev_result_name))
     logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++

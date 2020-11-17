@@ -10,12 +10,11 @@ from pandas import DataFrame
 from torch import Tensor as T
 from modelEvaluation.hotpotEvaluationUtils import answer_type_prediction, answer_span_prediction
 from modelEvaluation.hotpotEvaluationUtils import sp_score
-from modelEvaluation.hotpotEvaluationUtils import convert2leadBoard
 from transformers import LongformerTokenizer
 ##################################
 MASK_VALUE = -1e9
 ##################################
-def multi_task_decoder(model, test_data_loader, tokenizer, device, args):
+def multi_task_decoder(model, test_data_loader, device, args):
     '''
             Evaluate the reasonModel on test or valid datasets
     '''
@@ -83,9 +82,6 @@ def multi_task_decoder(model, test_data_loader, tokenizer, device, args):
                    'ss_ds_pair': support_sent_doc_sent_pair_results,
                    'encode_ids': encode_id_results} ## for detailed results checking
     res_data_frame = DataFrame(result_dict)
-    ##################################################
-    leadboard_metric, res_data_frame = convert2leadBoard(data=res_data_frame, tokenizer=tokenizer)
-    ##=================================================
     return {'supp_doc_metrics': doc_metrics, 'supp_sent_metrics': sent_metrics,
             'answer_type_acc': answer_type_accuracy, 'res_dataframe': res_data_frame}
 
