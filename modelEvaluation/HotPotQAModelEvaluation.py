@@ -18,6 +18,7 @@ from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder
 from reasonModel.UnifiedQAModel import LongformerHotPotQAModel
 from torch.utils.data import DataLoader
+from multihopUtils.longformerQAUtils import get_hotpotqa_longformer_tokenizer
 from multihopQA.hotpotQAdataloader import HotpotDevDataset
 from modelEvaluation.hierarchicalDecoder import hierartical_decoder
 from modelEvaluation.multitaskDecoder import multi_task_decoder
@@ -177,8 +178,11 @@ def main(model_args):
     logging.info('projection_dim = {}'.format(args.project_dim))
     logging.info('Multi-task encoding')
     logging.info('*' * 75)
+    logging.info('Loading tokenizer')
+    tokenizer = get_hotpotqa_longformer_tokenizer()
+    logging.info('*' * 75)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++
-    metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, args=args)
+    metric_dict = multi_task_decoder(model=model, device=device, test_data_loader=test_data_loader, tokenizer=tokenizer, args=args)
     answer_type_acc = metric_dict['answer_type_acc']
     logging.info('*' * 75)
     logging.info('Answer type prediction accuracy: {}'.format(answer_type_acc))
