@@ -43,7 +43,7 @@ def parse_args(args=None):
     ###++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--score_model_name', default='MLP', type=str) #'DotProduct', 'BiLinear', 'MLP'
     parser.add_argument('--hop_model_name', default='DotProduct', type=str)  # 'DotProduct', 'BiLinear'
-    parser.add_argument('--frozen_layer_num', default=0, type=int, help='number of layers for document encoder frozen during training')
+    parser.add_argument('--frozen_layer_num', default=6, type=int, help='number of layers for document encoder frozen during training')
     parser.add_argument('--project_dim', default=0, type=int)
     parser.add_argument('--global_mask_type', default='query_doc', type=str) ## query, query_doc, query_doc_sent
     parser.add_argument('--training_shuffle', default=0, type=int)  ## whether re-order training data
