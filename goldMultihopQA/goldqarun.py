@@ -75,7 +75,7 @@ def parse_args(args=None):
     parser.add_argument('-save', '--save_path', default='../model', type=str)
     parser.add_argument('--max_steps', default=60000, type=int)
     parser.add_argument('--epoch', default=8, type=int)
-    parser.add_argument('--warm_up_steps', default=2000, type=int)
+    parser.add_argument('--warm_up_steps', default=1000, type=int)
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     parser.add_argument('--save_checkpoint_steps', default=10000, type=int)
     parser.add_argument('--valid_steps', default=1000, type=int)
@@ -203,8 +203,8 @@ def main(args):
         logging.info('projection_dim = {}'.format(args.project_dim))
         logging.info('learning_rate = {}'.format(args.learning_rate))
         logging.info('Start training...')
-        # train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader, device=device,
-        #                 train_dataloader=train_data_loader, tokenizer=tokenizer, args=args)
+        train_all_steps(model=model, optimizer=optimizer, dev_dataloader=dev_data_loader, device=device,
+                        train_dataloader=train_data_loader, tokenizer=tokenizer, args=args)
         logging.info('Completed training in {:.4f} seconds'.format(time() - start_time))
         logging.info('Evaluating on Valid Dataset...')
         metric_dict = test_all_steps(model=model, tokenizer=tokenizer, test_data_loader=dev_data_loader, args=args)
