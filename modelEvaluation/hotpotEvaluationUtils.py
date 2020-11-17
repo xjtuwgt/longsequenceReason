@@ -95,9 +95,7 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer):
     def process_row(row):
         answer_type_prediction = row['aty_pred']
         support_doc_prediction = row['sd_pred']
-        support_sent_prediction = row['ss_pred']
         ss_ds_pair = row['ss_ds_pair']
-        assert len(support_sent_prediction) == len(ss_ds_pair)
         supp_sent_prediction_pair = ss_ds_pair
         span_prediction = row['ans_span']
         encode_ids = row['encode_ids']

@@ -29,7 +29,7 @@ def multi_task_decoder(model, test_data_loader, tokenizer, device, args):
     total_steps = len(test_dataset)
     # **********************************************************
     support_doc_pred_results = []
-    support_sent_pred_results, support_sent_doc_sent_pair_results = [], []
+    support_sent_doc_sent_pair_results = []
     answer_type_pred_results = []
     span_pred_results = []
     encode_id_results = []
@@ -62,9 +62,8 @@ def multi_task_decoder(model, test_data_loader, tokenizer, device, args):
             doc_predicted_labels = doc_pred_res
             support_doc_pred_results += doc_predicted_labels
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
-            sent_metric_logs, sent_abs_pred, sent_pair_pred = eval_res['supp_sent']
+            sent_metric_logs, sent_pair_pred = eval_res['supp_sent']
             sent_logs += sent_metric_logs
-            support_sent_pred_results += sent_abs_pred
             support_sent_doc_sent_pair_results += sent_pair_pred
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++
             # ******************************************
@@ -80,7 +79,6 @@ def multi_task_decoder(model, test_data_loader, tokenizer, device, args):
     answer_type_accuracy = '{:.4f}'.format(correct_answer_num * 1.0/N)
     result_dict = {'aty_pred': answer_type_pred_results,
                    'sd_pred': support_doc_pred_results,
-                   'ss_pred': support_sent_pred_results,
                    'ans_span': span_pred_results,
                    'ss_ds_pair': support_sent_doc_sent_pair_results,
                    'encode_ids': encode_id_results} ## for detailed results checking
