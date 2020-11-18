@@ -89,7 +89,7 @@ def get_model(args):
     logging.info('Constructing reasonModel completes in {:.4f}'.format(time() - start_time))
     return model
 
-def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, tokenizer, args):
+def training_warm_up(model, optimizer, train_dataloader, device, dev_dataloader, tokenizer, args):
     warm_up_steps = args.warm_up_steps
     start_time = time()
     step = 0
@@ -118,7 +118,7 @@ def training_warm_up(model, optimizer, train_dataloader, dev_dataloader, tokeniz
             logging.info('*' * 75)
             break
     logging.info('Evaluating on Valid Dataset...')
-    metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, tokenizer=tokenizer, args=args)
+    metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, tokenizer=tokenizer, device=device, args=args)
     logging.info('*' * 75)
     logging.info('Answer type prediction accuracy: {}'.format(metric_dict['answer_type_acc']))
     logging.info('*' * 75)
@@ -132,7 +132,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
     assert args.save_checkpoint_steps % args.valid_steps == 0
     warm_up_steps = args.warm_up_steps
     if warm_up_steps > 0:
-        training_warm_up(model=model, optimizer=optimizer, train_dataloader=train_dataloader, tokenizer=tokenizer, dev_dataloader=dev_dataloader, args=args)
+        training_warm_up(model=model, optimizer=optimizer, device=device, train_dataloader=train_dataloader, tokenizer=tokenizer, dev_dataloader=dev_dataloader, args=args)
         logging.info('*' * 75)
         current_learning_rate = optimizer.param_groups[-1]['lr']
         learning_rate = current_learning_rate * 0.5
@@ -172,7 +172,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
             if args.do_valid and step % args.valid_steps == 0:
                 logging.info('*' * 75)
                 logging.info('Evaluating on Valid Data set...')
-                metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, args=args, tokenizer=tokenizer)
+                metric_dict = test_all_steps(model=model, test_data_loader=dev_dataloader, device=device, args=args, tokenizer=tokenizer)
                 logging.info('*' * 75)
                 answer_type_acc = metric_dict['answer_type_acc']
                 eval_metric = answer_type_acc
@@ -223,7 +223,7 @@ def train_single_step(model, optimizer, train_sample, args):
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++Test steps++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-def test_all_steps(model, test_data_loader, tokenizer, args):
+def test_all_steps(model, device, test_data_loader, tokenizer, args):
     '''
             Evaluate the reasonModel on test or valid datasets
     '''
@@ -247,7 +247,7 @@ def test_all_steps(model, test_data_loader, tokenizer, args):
             if args.cuda:
                 sample = dict()
                 for key, value in test_sample.items():
-                    sample[key] = value.cuda()
+                    sample[key] = value.to(device)
             else:
                 sample = test_sample
             output = model(sample)
