@@ -59,7 +59,7 @@ def save_data_frame_to_json(df: DataFrame, file_name: str):
 def save_check_point(model, optimizer: Adam, loss, eval_metric, step, args):
     argparse_dict = vars(args)
     if (loss is not None) and (eval_metric is not None):
-        save_model_name = '{}_{:.4f}_{:.4f}'.format(step, loss, eval_metric)
+        save_model_name = '{}_{}_{}'.format(step, loss, eval_metric)
     else:
         save_model_name = '{}'.format(step)
     with open(os.path.join(args.save_path, 'config_' + save_model_name + '.json'), 'w') as fjson: ## saving model parameters
