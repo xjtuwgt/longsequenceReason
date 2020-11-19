@@ -305,7 +305,7 @@ def test_all_steps(model, test_data_loader, device, args):
             if args.cuda:
                 sample = dict()
                 for key, value in test_sample.items():
-                    sample[key] = value.cuda()
+                    sample[key] = value.to(device)
             else:
                 sample = test_sample
             output = model(sample)
