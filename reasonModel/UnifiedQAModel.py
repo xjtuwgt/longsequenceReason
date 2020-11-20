@@ -131,11 +131,11 @@ class LongformerHotPotQAModel(nn.Module):
             head_tail_pair = None
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sequence_output, _, _ = self.get_representation(self.longformer, ctx_encode_ids, ctx_attn_mask, ctx_global_attn_mask, self.fix_encoder)
-        yn_scores = self.answer_type_prediction(sequence_output=sequence_output)
-        start_logits, end_logits = self.span_prediction(sequence_output=sequence_output)
+        answer_type_scores = self.answer_type_prediction(sequence_output=sequence_output)
+        start_logits, end_logits = self.answer_span_prediction(sequence_output=sequence_output)
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sent_sent_mask, doc_sent_mask = sample['ss_mask'], sample['sd_mask']
-        supp_sent_scores, supp_doc_scores, supp_head_tail_scores = self.supp_doc_sent_prediction(sequence_output=sequence_output,
+        sent_scores, doc_scores, doc_pair_scores = self.supp_doc_sent_prediction(sequence_output=sequence_output,
                                                                                                  doc_position=doc_positions,
                                                                                                  sent_position=sent_positions,
                                                                                                  sent_sent_mask=sent_sent_mask,
@@ -147,18 +147,17 @@ class LongformerHotPotQAModel(nn.Module):
         end_logits = end_logits.masked_fill(ctx_attn_mask == 0, self.mask_value)
         end_logits = end_logits.masked_fill(special_marker == 1, self.mask_value)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        output = {'answer_type_score': yn_scores, 'answer_span_score': (start_logits, end_logits),
-                  'doc_score': (supp_doc_scores, supp_head_tail_scores), 'sent_score': supp_sent_scores}
+        output = {'answer_type_score': answer_type_scores, 'answer_span_score': (start_logits, end_logits),
+                  'doc_score': (doc_scores, doc_pair_scores), 'sent_score': sent_scores}
         if self.training:
             loss_res = self.multi_loss_computation(sample=sample, output_scores=output)
             return loss_res
         else:
-            assert supp_head_tail_scores == None
+            assert doc_pair_scores == None
             return output
 
     def hierartical_score(self, span_start_score: T, span_end_score: T, doc_scores: T, sent_scores: T,
                           doc_lens: T, sent_lens: T, doc2sent_map: T, sent2token_map: T):
-
         doc_scores = doc_scores.masked_fill(doc_lens==0, self.mask_value)
         doc_weights = F.softmax(doc_scores, dim=-1)
         doc2sent_weights = doc_weights.gather(1, doc2sent_map)
@@ -182,7 +181,7 @@ class LongformerHotPotQAModel(nn.Module):
         scores = self.yn_outputs(cls_emb).squeeze(dim=-1)
         return scores
 
-    def span_prediction(self, sequence_output: T):
+    def answer_span_prediction(self, sequence_output: T):
         logits = self.qa_outputs(sequence_output)
         start_logits, end_logits = logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1)
@@ -199,7 +198,7 @@ class LongformerHotPotQAModel(nn.Module):
         #####++++++++++++++++++++
         sent_model_func = {'MLP': self.MLP}
         if self.score_model_name in sent_model_func:
-            sent_pair_score = sent_model_func[self.score_model_name](sent_embed, mode='sentence').squeeze(dim=-1)
+            sent_score = sent_model_func[self.score_model_name](sent_embed, mode='sentence').squeeze(dim=-1)
         else:
             raise ValueError('Score Model %s not supported' % self.score_model_name)
         ####+++++++++++++++++++++
@@ -217,12 +216,12 @@ class LongformerHotPotQAModel(nn.Module):
         #####++++++++++++++++++++
         doc_model_func = {'MLP': self.MLP}
         if self.score_model_name in doc_model_func:
-            doc_pair_score = doc_model_func[self.score_model_name](doc_embed, mode='document').squeeze(dim=-1)
+            doc_score = doc_model_func[self.score_model_name](doc_embed, mode='document').squeeze(dim=-1)
         else:
             raise ValueError('Score Model %s not supported' % self.score_model_name)
         #####++++++++++++++++++++
         #####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        head_tail_score = None
+        doc_pair_score = None
         if head_tail_pair is not None:
             head_position, tail_position = head_tail_pair
             # ######++++++++++++++++++++++++++++++++++++++
@@ -238,16 +237,15 @@ class LongformerHotPotQAModel(nn.Module):
             ###################
             hop_model_func = {'DotProduct': self.Hop_DotProduct, 'BiLinear': self.Hop_BiLinear}
             if self.hop_model_name in hop_model_func:
-                head_tail_score = hop_model_func[self.hop_model_name](head_emb, doc_embed).squeeze(dim=-1)
+                doc_pair_score = hop_model_func[self.hop_model_name](head_emb, doc_embed).squeeze(dim=-1)
             else:
                 raise ValueError('Hop score mode %s not supported' % self.hop_model_name)
         #####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        return sent_pair_score, doc_pair_score, head_tail_score
+        return sent_score, doc_score, doc_pair_score
 
     ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def Hop_DotProduct(self, head_emb: T, tail_emb: T) -> T:
         score = self.hop_doc_dotproduct.forward(head_emb, tail_emb)
-        # print('pair score = {}'.format(score))
         return score
 
     def Hop_BiLinear(self, head_emb: T, tail_emb: T) -> T:
@@ -325,13 +323,13 @@ class LongformerHotPotQAModel(nn.Module):
         answer_span_loss_score = self.answer_span_loss(start_logits=start_logits, end_logits=end_logits,
                                                  start_positions=answer_start_positions, end_positions=answer_end_positions)
         #######################################################################
-        doc_scores, supp_head_tail_scores = output_scores['doc_score']
+        doc_scores, doc_pair_scores = output_scores['doc_score']
         doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
         doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
         supp_doc_loss_score = self.supp_doc_loss(doc_scores=doc_scores, doc_label=doc_label, doc_mask=doc_mask)
-        if supp_head_tail_scores is not None:
+        if doc_pair_scores is not None:
             supp_head_position, supp_tail_position = sample['head_idx'], sample['tail_idx']
-            supp_doc_pair_loss_score = self.doc_hop_loss(doc_pair_scores=supp_head_tail_scores, head_position=supp_head_position,
+            supp_doc_pair_loss_score = self.doc_hop_loss(doc_pair_scores=doc_pair_scores, head_position=supp_head_position,
                                                    tail_position=supp_tail_position, doc_mask=doc_mask)
         else:
             supp_doc_pair_loss_score = torch.tensor(0.0).to(doc_label.device)
