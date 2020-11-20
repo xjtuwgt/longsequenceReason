@@ -131,7 +131,7 @@ class LongformerHotPotQAModel(nn.Module):
             head_tail_pair = None
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sequence_output, _, _ = self.get_representation(self.longformer, ctx_encode_ids, ctx_attn_mask, ctx_global_attn_mask, self.fix_encoder)
-        yn_scores = self.yes_no_prediction(sequence_output=sequence_output)
+        yn_scores = self.answer_type_prediction(sequence_output=sequence_output)
         start_logits, end_logits = self.span_prediction(sequence_output=sequence_output)
         #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sent_sent_mask, doc_sent_mask = sample['ss_mask'], sample['sd_mask']
@@ -147,10 +147,10 @@ class LongformerHotPotQAModel(nn.Module):
         end_logits = end_logits.masked_fill(ctx_attn_mask == 0, self.mask_value)
         end_logits = end_logits.masked_fill(special_marker == 1, self.mask_value)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        output = {'yn_score': yn_scores, 'span_score': (start_logits, end_logits),
+        output = {'answer_type_score': yn_scores, 'answer_span_score': (start_logits, end_logits),
                   'doc_score': (supp_doc_scores, supp_head_tail_scores), 'sent_score': supp_sent_scores}
         if self.training:
-            loss_res = self.loss_computation(output=output, sample=sample)
+            loss_res = self.multi_loss_computation(sample=sample, output_scores=output)
             return loss_res
         else:
             assert supp_head_tail_scores == None
@@ -177,7 +177,7 @@ class LongformerHotPotQAModel(nn.Module):
         span_end_logit = compute_smooth_reverse_sigmoid(prob=span_end_prob)
         return span_start_logit, span_end_logit, sent_logit
 
-    def yes_no_prediction(self, sequence_output: T):
+    def answer_type_prediction(self, sequence_output: T):
         cls_emb = sequence_output[:, 0, :]
         scores = self.yn_outputs(cls_emb).squeeze(dim=-1)
         return scores
@@ -265,94 +265,84 @@ class LongformerHotPotQAModel(nn.Module):
             raise ValueError('mode %s not supported' % mode)
         return score
 
-    def score_label_pair(self, output_scores, sample):
-        yn_scores = output_scores['yn_score']
-        start_logits, end_logits = output_scores['span_score']
-        #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # print(start_logits.shape, end_logits.shape, sample['ctx_attn_mask'].shape, sample['ctx_attn_mask'].sum(dim=1), sample['doc_lens'].sum(dim=1))
-        answer_start_positions, answer_end_positions, yn_labels = sample['ans_start'], sample['ans_end'], sample['yes_no']
-        if len(yn_labels.shape) > 0:
-            yn_labels = yn_labels.squeeze(dim=-1)
-        yn_num = (yn_labels > 0).sum().data.item()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        supp_doc_scores, supp_head_tail_scores = output_scores['doc_score']
-        supp_sent_scores = output_scores['sent_score']
-        # ******************************************************************************************************************
-        # ******************************************************************************************************************
-        doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
-        sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
-        supp_head_position, supp_tail_position = sample['head_idx'], sample['tail_idx']
-        doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
-        sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
-        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        if len(answer_start_positions.size()) > 1:
-            answer_start_positions = answer_start_positions.squeeze(-1)
-        if len(answer_end_positions.size()) > 1:
-            answer_end_positions = answer_end_positions.squeeze(-1)
-        # sometimes the start/end positions are outside our reasonModel inputs, we ignore these terms
+    def answer_span_loss(self, start_logits: T, end_logits: T, start_positions: T, end_positions: T):
+        if len(start_positions.size()) > 1:
+            start_positions = start_positions.squeeze(-1)
+        if len(end_positions.size()) > 1:
+            end_positions = end_positions.squeeze(-1)
+        # sometimes the start/end positions are outside our model inputs, we ignore these terms
         ignored_index = start_logits.size(1)
-        answer_start_positions.clamp_(0, ignored_index)
-        answer_end_positions.clamp_(0, ignored_index)
-        ##+++++++++++++++
-        if yn_num > 0:
-            ans_batch_idx = (yn_labels > 0).nonzero().squeeze()
+        start_positions.clamp_(0, ignored_index)
+        end_positions.clamp_(0, ignored_index)
+
+        loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
+        start_loss = loss_fct(start_logits, start_positions)
+        end_loss = loss_fct(end_logits, end_positions)
+        total_loss = (start_loss + end_loss) / 2
+        return total_loss
+
+    def answer_type_loss(self, answer_type_logits: T, true_labels: T):
+        if len(true_labels.shape) > 1:
+            true_lables = true_labels.squeeze(dim=-1)
+        no_span_num = (true_lables > 0).sum().data.item()
+        answer_type_loss_fct = MultiClassFocalLoss(num_class=3)
+        yn_loss = answer_type_loss_fct.forward(answer_type_logits, true_lables)
+        return yn_loss, no_span_num, true_lables
+
+    def supp_doc_loss(self, doc_scores: T, doc_label: T, doc_mask: T):
+        supp_loss_fct = PairwiseCEFocalLoss()
+        supp_doc_loss = supp_loss_fct.forward(scores=doc_scores, targets=doc_label, target_len=doc_mask)
+        return supp_doc_loss
+
+    def doc_hop_loss(self, doc_pair_scores: T, head_position: T, tail_position: T, doc_mask: T):
+        supp_pair_loss_fct = TriplePairwiseCEFocalLoss()
+        supp_doc_pair_loss = supp_pair_loss_fct.forward(scores=doc_pair_scores,
+                                                        head_position=head_position,
+                                                        tail_position=tail_position,
+                                                        score_mask=doc_mask)
+        return supp_doc_pair_loss
+
+    def supp_sent_loss(self, sent_scores: T, sent_label: T, sent_mask: T):
+        supp_loss_fct = PairwiseCEFocalLoss()
+        supp_sent_loss = supp_loss_fct.forward(scores=sent_scores, targets=sent_label, target_len=sent_mask)
+        return supp_sent_loss
+
+    def multi_loss_computation(self, output_scores: dict, sample: dict):
+        answer_type_scores = output_scores['answer_type_score']
+        answer_type_labels = sample['yes_no']
+        answer_type_loss_score, no_span_num, answer_type_labels = self.answer_type_loss(answer_type_logits=answer_type_scores,
+                                                                                  true_labels=answer_type_labels)
+        #######################################################################
+        answer_start_positions, answer_end_positions = sample['ans_start'], sample['ans_end']
+        start_logits, end_logits = output_scores['answer_span_score']
+        if no_span_num > 0:
+            ans_batch_idx = (answer_type_labels > 0).nonzero().squeeze()
             start_logits[ans_batch_idx] = -1
             end_logits[ans_batch_idx] = -1
             start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 1
             end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 1
-        ##+++++++++++++++
-        # ******************************************************************************************************************
-        # ******************************************************************************************************************
-        return {'yn': (yn_scores, yn_labels),
-                'span': ((start_logits, end_logits), (answer_start_positions, answer_end_positions), ignored_index),
-                'doc': (supp_doc_scores, doc_label, doc_mask),
-                'doc_pair': (supp_head_tail_scores, supp_head_position, supp_tail_position),
-                'sent': (supp_sent_scores, sent_label, sent_mask)}
-
-    def loss_computation(self, output, sample):
-        predict_label_pair = self.score_label_pair(output_scores=output, sample=sample)
-        ##+++++++++++++
-        yn_score, yn_label = predict_label_pair['yn']
-        yn_loss_fct = MultiClassFocalLoss(num_class=3)
-        yn_loss = yn_loss_fct.forward(yn_score, yn_label)
-        ##+++++++++++++
-        supp_loss_fct = PairwiseCEFocalLoss()
-        supp_doc_scores, doc_label, doc_mask = predict_label_pair['doc']
-        supp_doc_loss = supp_loss_fct.forward(scores=supp_doc_scores, targets=doc_label, target_len=doc_mask)
-        ##+++++++++++++
-        ##+++++++++++++
-        supp_pair_doc_scores, head_position, tail_position = predict_label_pair['doc_pair']
-        if supp_pair_doc_scores is None:
-            supp_doc_pair_loss = torch.tensor(0.0).to(head_position.device)
+        ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        answer_span_loss_score = self.answer_span_loss(start_logits=start_logits, end_logits=end_logits,
+                                                 start_positions=answer_start_positions, end_positions=answer_end_positions)
+        #######################################################################
+        doc_scores, supp_head_tail_scores = output_scores['doc_score']
+        doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
+        doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
+        supp_doc_loss_score = self.supp_doc_loss(doc_scores=doc_scores, doc_label=doc_label, doc_mask=doc_mask)
+        if supp_head_tail_scores is not None:
+            supp_head_position, supp_tail_position = sample['head_idx'], sample['tail_idx']
+            supp_doc_pair_loss_score = self.doc_hop_loss(doc_pair_scores=supp_head_tail_scores, head_position=supp_head_position,
+                                                   tail_position=supp_tail_position, doc_mask=doc_mask)
         else:
-            supp_pair_loss_fct = TriplePairwiseCEFocalLoss()
-            supp_doc_pair_loss = supp_pair_loss_fct.forward(scores=supp_pair_doc_scores,
-                                                            head_position=head_position,
-                                                            tail_position=tail_position,
-                                                            score_mask=doc_mask)
-        ##+++++++++++++
-        supp_sent_scores, sent_label, sent_mask = predict_label_pair['sent']
-        supp_sent_loss = supp_loss_fct.forward(scores=supp_sent_scores, targets=sent_label, target_len=sent_mask)
-        ##+++++++++++++
-        span_logits, span_position, ignored_index = predict_label_pair['span']
-        start_logits, end_logits = span_logits
-        start_positions, end_positions = span_position
-        # ++++++++++++++++++++++++++++++++++++++++++++++++
-        span_loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
-        start_loss = span_loss_fct(start_logits, start_positions)
-        end_loss = span_loss_fct(end_logits, end_positions)
-        # ++++++++++++++++++++++++++++++++++++++++++++++++
-        span_loss = (start_loss + end_loss) / 2
-        if span_loss > 20000:
-            tokenizer = get_hotpotqa_longformer_tokenizer()
-            ctx_encode_ids = sample['ctx_encode']
-            print('start logits {}, start position {}'.format(start_logits, start_positions))
-            print('end logits {}, end position {}'.format(end_logits, end_positions))
-            batch_size = ctx_encode_ids.shape[0]
-            for i in range(batch_size):
-                start_i = start_positions[i]
-                end_i = end_positions[i]
-                print('decode answer={}'.format(tokenizer.decode(ctx_encode_ids[i][start_i:(end_i + 1)])))
-                print('start logit {}, end logit {}'.format(start_logits[i][start_i], end_logits[i][end_i]))
-        return {'yn_loss': yn_loss, 'span_loss': span_loss, 'doc_loss': supp_doc_loss, 'doc_pair_loss': supp_doc_pair_loss,
-                'sent_loss': supp_sent_loss}
+            supp_doc_pair_loss_score = torch.tensor(0.0).to(doc_label.device)
+        #######################################################################
+        sent_scores = output_scores['sent_score']
+        sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
+        sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+        supp_sent_loss_score = self.supp_sent_loss(sent_scores=sent_scores, sent_label=sent_label, sent_mask=sent_mask)
+
+        return {'yn_loss': answer_type_loss_score, 'span_loss': answer_span_loss_score,
+                'doc_loss': supp_doc_loss_score, 'doc_pair_loss': supp_doc_pair_loss_score,
+                'sent_loss': supp_sent_loss_score}
+
+

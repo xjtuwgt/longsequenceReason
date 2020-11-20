@@ -1024,3 +1024,96 @@
 #     metrics = json_eval(prediction=predicted_data_dict, gold=golden_data_dict)
 #     res_data_frame = pd.DataFrame.from_dict(predicted_data_dict)
 #     return metrics, res_data_frame
+
+
+# def score_label_pair(self, output_scores, sample):
+    #     yn_scores = output_scores['yn_score']
+    #     start_logits, end_logits = output_scores['span_score']
+    #     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #     # print(start_logits.shape, end_logits.shape, sample['ctx_attn_mask'].shape, sample['ctx_attn_mask'].sum(dim=1), sample['doc_lens'].sum(dim=1))
+    #     answer_start_positions, answer_end_positions, yn_labels = sample['ans_start'], sample['ans_end'], sample['yes_no']
+    #     if len(yn_labels.shape) > 0:
+    #         yn_labels = yn_labels.squeeze(dim=-1)
+    #     yn_num = (yn_labels > 0).sum().data.item()
+    #     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #     supp_doc_scores, supp_head_tail_scores = output_scores['doc_score']
+    #     supp_sent_scores = output_scores['sent_score']
+    #     # ******************************************************************************************************************
+    #     # ******************************************************************************************************************
+    #     doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
+    #     sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
+    #     supp_head_position, supp_tail_position = sample['head_idx'], sample['tail_idx']
+    #     doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
+    #     sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+    #     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #     if len(answer_start_positions.size()) > 1:
+    #         answer_start_positions = answer_start_positions.squeeze(-1)
+    #     if len(answer_end_positions.size()) > 1:
+    #         answer_end_positions = answer_end_positions.squeeze(-1)
+    #     # sometimes the start/end positions are outside our reasonModel inputs, we ignore these terms
+    #     ignored_index = start_logits.size(1)
+    #     answer_start_positions.clamp_(0, ignored_index)
+    #     answer_end_positions.clamp_(0, ignored_index)
+    #     ##+++++++++++++++
+    #     if yn_num > 0:
+    #         ans_batch_idx = (yn_labels > 0).nonzero().squeeze()
+    #         start_logits[ans_batch_idx] = -1
+    #         end_logits[ans_batch_idx] = -1
+    #         start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 1
+    #         end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 1
+    #     ##+++++++++++++++
+    #     # ******************************************************************************************************************
+    #     # ******************************************************************************************************************
+    #     return {'yn': (yn_scores, yn_labels),
+    #             'span': ((start_logits, end_logits), (answer_start_positions, answer_end_positions), ignored_index),
+    #             'doc': (supp_doc_scores, doc_label, doc_mask),
+    #             'doc_pair': (supp_head_tail_scores, supp_head_position, supp_tail_position),
+    #             'sent': (supp_sent_scores, sent_label, sent_mask)}
+    #
+    # def loss_computation(self, output, sample):
+    #     predict_label_pair = self.score_label_pair(output_scores=output, sample=sample)
+    #     ##+++++++++++++
+    #     yn_score, yn_label = predict_label_pair['yn']
+    #     yn_loss_fct = MultiClassFocalLoss(num_class=3)
+    #     yn_loss = yn_loss_fct.forward(yn_score, yn_label)
+    #     ##+++++++++++++
+    #     supp_loss_fct = PairwiseCEFocalLoss()
+    #     supp_doc_scores, doc_label, doc_mask = predict_label_pair['doc']
+    #     supp_doc_loss = supp_loss_fct.forward(scores=supp_doc_scores, targets=doc_label, target_len=doc_mask)
+    #     ##+++++++++++++
+    #     ##+++++++++++++
+    #     supp_pair_doc_scores, head_position, tail_position = predict_label_pair['doc_pair']
+    #     if supp_pair_doc_scores is None:
+    #         supp_doc_pair_loss = torch.tensor(0.0).to(head_position.device)
+    #     else:
+    #         supp_pair_loss_fct = TriplePairwiseCEFocalLoss()
+    #         supp_doc_pair_loss = supp_pair_loss_fct.forward(scores=supp_pair_doc_scores,
+    #                                                         head_position=head_position,
+    #                                                         tail_position=tail_position,
+    #                                                         score_mask=doc_mask)
+    #     ##+++++++++++++
+    #     supp_sent_scores, sent_label, sent_mask = predict_label_pair['sent']
+    #     supp_sent_loss = supp_loss_fct.forward(scores=supp_sent_scores, targets=sent_label, target_len=sent_mask)
+    #     ##+++++++++++++
+    #     span_logits, span_position, ignored_index = predict_label_pair['span']
+    #     start_logits, end_logits = span_logits
+    #     start_positions, end_positions = span_position
+    #     # ++++++++++++++++++++++++++++++++++++++++++++++++
+    #     span_loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
+    #     start_loss = span_loss_fct(start_logits, start_positions)
+    #     end_loss = span_loss_fct(end_logits, end_positions)
+    #     # ++++++++++++++++++++++++++++++++++++++++++++++++
+    #     span_loss = (start_loss + end_loss) / 2
+    #     if span_loss > 20000:
+    #         tokenizer = get_hotpotqa_longformer_tokenizer()
+    #         ctx_encode_ids = sample['ctx_encode']
+    #         print('start logits {}, start position {}'.format(start_logits, start_positions))
+    #         print('end logits {}, end position {}'.format(end_logits, end_positions))
+    #         batch_size = ctx_encode_ids.shape[0]
+    #         for i in range(batch_size):
+    #             start_i = start_positions[i]
+    #             end_i = end_positions[i]
+    #             print('decode answer={}'.format(tokenizer.decode(ctx_encode_ids[i][start_i:(end_i + 1)])))
+    #             print('start logit {}, end logit {}'.format(start_logits[i][start_i], end_logits[i][end_i]))
+    #     return {'yn_loss': yn_loss, 'span_loss': span_loss, 'doc_loss': supp_doc_loss, 'doc_pair_loss': supp_doc_pair_loss,
+    #             'sent_loss': supp_sent_loss}
