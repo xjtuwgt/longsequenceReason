@@ -1,7 +1,7 @@
 from torch import Tensor as T
 from torch import nn
 import torch
-from multihopUtils.longformerQAUtils import LongformerEncoder, get_hotpotqa_longformer_tokenizer
+from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss, TriplePairwiseCEFocalLoss
 from reasonModel.Transformer import Transformer
 from torch.nn import CrossEntropyLoss
@@ -342,5 +342,3 @@ class LongformerHotPotQAModel(nn.Module):
         return {'yn_loss': answer_type_loss_score, 'span_loss': answer_span_loss_score,
                 'doc_loss': supp_doc_loss_score, 'doc_pair_loss': supp_doc_pair_loss_score,
                 'sent_loss': supp_sent_loss_score}
-
-
