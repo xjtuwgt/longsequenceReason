@@ -165,7 +165,6 @@ def main(args):
         logging.info('CPU setting')
 
     logging.info('Device = {}, Device ids = {}'.format(device, device_ids))
-
     logging.info('Loading training data...')
     train_data_loader, train_data_size = get_train_data_loader(args=args)
     estimated_max_steps = args.epoch * ((train_data_size // args.batch_size) + 1)
