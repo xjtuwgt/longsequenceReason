@@ -189,13 +189,13 @@ class LongformerHotPotQAModel(nn.Module):
         return start_logits, end_logits
 
     def supp_doc_sent_prediction(self, sequence_output, doc_position, doc_sent_mask, sent_position, sent_sent_mask, head_tail_pair=None):
-        ##++++++++++++++++++++++++++++++++++++
+        ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         batch_size, sent_num = sent_position.shape
         batch_idx = torch.arange(0, batch_size).view(batch_size, 1).repeat(1, sent_num).to(sequence_output.device)
         sent_embed = sequence_output[batch_idx, sent_position]
         # if self.with_graph:
         #     sent_embed = self.transformer_layer.forward(query=sent_embed, key=sent_embed, value=sent_embed, x_mask=sent_sent_mask)
-        #####++++++++++++++++++++
+        #####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sent_model_func = {'MLP': self.MLP}
         if self.score_model_name in sent_model_func:
             sent_score = sent_model_func[self.score_model_name](sent_embed, mode='sentence').squeeze(dim=-1)
@@ -315,10 +315,10 @@ class LongformerHotPotQAModel(nn.Module):
         start_logits, end_logits = output_scores['answer_span_score']
         if no_span_num > 0:
             ans_batch_idx = (answer_type_labels > 0).nonzero().squeeze()
-            start_logits[ans_batch_idx] = -1
-            end_logits[ans_batch_idx] = -1
-            start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 1
-            end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 1
+            start_logits[ans_batch_idx] = -10
+            end_logits[ans_batch_idx] = -10
+            start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 10
+            end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 10
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         answer_span_loss_score = self.answer_span_loss(start_logits=start_logits, end_logits=end_logits,
                                                  start_positions=answer_start_positions, end_positions=answer_end_positions)
