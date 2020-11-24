@@ -337,7 +337,7 @@ def test_all_steps(model, test_data_loader, device, args):
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================
-    yn_scores = output_scores['yn_score']
+    yn_scores = output_scores['answer_type_score']
     yn_true_labels = sample['yes_no']
     if len(yn_true_labels.shape) > 1:
         yn_true_labels = yn_true_labels.squeeze(dim=-1)

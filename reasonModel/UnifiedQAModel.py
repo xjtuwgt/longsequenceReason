@@ -3,25 +3,9 @@ from torch import nn
 import torch
 from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss, TriplePairwiseCEFocalLoss
-from reasonModel.Transformer import Transformer
+from reasonModel.Transformer import Transformer, PositionwiseFeedForward
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
-
-class PositionwiseFeedForward(nn.Module):
-    "Implements FFN equation."
-    def __init__(self, d_input, d_mid, d_out, dropout=0.1):
-        super(PositionwiseFeedForward, self).__init__()
-        self.w_1 = nn.Linear(d_input, d_mid)
-        self.w_2 = nn.Linear(d_mid, d_out)
-        self.dropout = nn.Dropout(dropout)
-        self.init()
-
-    def init(self):
-        nn.init.kaiming_uniform_(self.w_1.weight.data)
-        nn.init.kaiming_uniform_(self.w_2.weight.data)
-
-    def forward(self, x):
-        return self.w_2(self.dropout(F.relu(self.w_1(x))))
 
 class BiLinear(nn.Module):
     def __init__(self, project_dim: int, args):
@@ -67,20 +51,19 @@ class LongformerHotPotQAModel(nn.Module):
         self.num_labels = num_labels
         self.longformer = longformer
         self.hidden_size = longformer.get_out_size()
-        self.yn_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
-        self.qa_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
+        self.answer_type_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
+        self.answer_span_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
         self.fix_encoder = fix_encoder
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.score_model_name = args.score_model_name ## supp doc score/supp sent score
         self.hop_model_name = args.hop_model_name ## triple score
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.with_graph = args.with_graph == 1
+        self.with_graph = (args.with_graph == 1)
         if self.with_graph:
             self.transformer_layer = Transformer(d_model=self.hidden_size, heads=args.heads)
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.graph_training = args.with_graph_training == 1
+        self.graph_training = (args.with_graph_training == 1)
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
         if self.score_model_name not in ['MLP']:
             raise ValueError('reasonModel %s not supported' % self.score_model_name)
         else:
@@ -92,7 +75,6 @@ class LongformerHotPotQAModel(nn.Module):
         else:
             self.hop_doc_dotproduct = DotProduct(args=args) if self.hop_model_name == 'DotProduct' else None
             self.hop_doc_bilinear = BiLinear(args=args, project_dim=self.hidden_size) if self.hop_model_name == 'BiLinear' else None
-
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.mask_value = -1e9
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -178,11 +160,11 @@ class LongformerHotPotQAModel(nn.Module):
 
     def answer_type_prediction(self, sequence_output: T):
         cls_emb = sequence_output[:, 0, :]
-        scores = self.yn_outputs(cls_emb).squeeze(dim=-1)
+        scores = self.answer_type_outputs(cls_emb).squeeze(dim=-1)
         return scores
 
     def answer_span_prediction(self, sequence_output: T):
-        logits = self.qa_outputs(sequence_output)
+        logits = self.answer_span_prediction(sequence_output)
         start_logits, end_logits = logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1)
         end_logits = end_logits.squeeze(-1)
@@ -310,7 +292,7 @@ class LongformerHotPotQAModel(nn.Module):
         answer_type_labels = sample['yes_no']
         answer_type_loss_score, no_span_num, answer_type_labels = self.answer_type_loss(answer_type_logits=answer_type_scores,
                                                                                   true_labels=answer_type_labels)
-        #######################################################################
+        ################################################################################################################
         answer_start_positions, answer_end_positions = sample['ans_start'], sample['ans_end']
         start_logits, end_logits = output_scores['answer_span_score']
         if no_span_num > 0:
@@ -319,10 +301,10 @@ class LongformerHotPotQAModel(nn.Module):
             end_logits[ans_batch_idx] = -10
             start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 10
             end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 10
-        ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        ################################################################################################################
         answer_span_loss_score = self.answer_span_loss(start_logits=start_logits, end_logits=end_logits,
                                                  start_positions=answer_start_positions, end_positions=answer_end_positions)
-        #######################################################################
+        ################################################################################################################
         doc_scores, doc_pair_scores = output_scores['doc_score']
         doc_label, doc_lens = sample['doc_labels'], sample['doc_lens']
         doc_mask = doc_lens.masked_fill(doc_lens > 0, 1)
@@ -333,12 +315,12 @@ class LongformerHotPotQAModel(nn.Module):
                                                    tail_position=supp_tail_position, doc_mask=doc_mask)
         else:
             supp_doc_pair_loss_score = torch.tensor(0.0).to(doc_label.device)
-        #######################################################################
+        ################################################################################################################
         sent_scores = output_scores['sent_score']
         sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
         sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
         supp_sent_loss_score = self.supp_sent_loss(sent_scores=sent_scores, sent_label=sent_label, sent_mask=sent_mask)
-
+        ################################################################################################################
         return {'yn_loss': answer_type_loss_score, 'span_loss': answer_span_loss_score,
                 'doc_loss': supp_doc_loss_score, 'doc_pair_loss': supp_doc_pair_loss_score,
                 'sent_loss': supp_sent_loss_score}
