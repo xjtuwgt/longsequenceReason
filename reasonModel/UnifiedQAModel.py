@@ -3,7 +3,8 @@ from torch import nn
 import torch
 from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss, TriplePairwiseCEFocalLoss
-from reasonModel.Transformer import Transformer, PositionwiseFeedForward
+from reasonModel.Transformer import Transformer
+from reasonModel.modelUtils import MLP
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 
@@ -51,8 +52,8 @@ class LongformerHotPotQAModel(nn.Module):
         self.num_labels = num_labels
         self.longformer = longformer
         self.hidden_size = longformer.get_out_size()
-        self.answer_type_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
-        self.answer_span_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
+        self.answer_type_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
+        self.answer_span_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
         self.fix_encoder = fix_encoder
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.score_model_name = args.score_model_name ## supp doc score/supp sent score
@@ -67,8 +68,8 @@ class LongformerHotPotQAModel(nn.Module):
         if self.score_model_name not in ['MLP']:
             raise ValueError('reasonModel %s not supported' % self.score_model_name)
         else:
-            self.doc_mlp = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1) if self.score_model_name == 'MLP' else None
-            self.sent_mlp = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1) if self.score_model_name == 'MLP' else None
+            self.doc_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1) if self.score_model_name == 'MLP' else None
+            self.sent_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1) if self.score_model_name == 'MLP' else None
 
         if self.hop_model_name not in ['DotProduct', 'BiLinear']:
             self.hop_model_name = None

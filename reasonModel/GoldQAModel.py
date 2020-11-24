@@ -4,7 +4,7 @@ import torch
 from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss
 from torch.nn import CrossEntropyLoss
-from reasonModel.Transformer import PositionwiseFeedForward
+from reasonModel.modelUtils import MLP
 
 ########################################################################################################################
 ########################################################################################################################
@@ -14,11 +14,11 @@ class LongformerHotPotQAModel(nn.Module):
         self.num_labels = num_labels
         self.longformer = longformer
         self.hidden_size = longformer.get_out_size()
-        self.yn_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
-        self.qa_outputs = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
+        self.yn_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
+        self.qa_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
         self.fix_encoder = fix_encoder
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.sent_mlp = PositionwiseFeedForward(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1)
+        self.sent_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1)
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.mask_value = -1e9
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
