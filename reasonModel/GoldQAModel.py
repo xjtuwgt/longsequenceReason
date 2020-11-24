@@ -14,12 +14,12 @@ class LongformerHotPotQAModel(nn.Module):
         self.num_labels = num_labels
         self.longformer = longformer
         self.hidden_size = longformer.get_out_size()
-        self.yn_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
+        self.answer_type_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
         self.qa_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
         self.fix_encoder = fix_encoder
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.sent_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1)
-        ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.mask_value = -1e9
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -47,12 +47,10 @@ class LongformerHotPotQAModel(nn.Module):
 
     def forward(self, sample):
         ctx_encode_ids, ctx_attn_mask, ctx_global_attn_mask = sample['ctx_encode'], sample['ctx_attn_mask'], sample['ctx_global_mask']
-        sent_positions = sample['sent_start']
-        special_marker = sample['marker']
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        sent_positions, special_marker = sample['sent_start'], sample['marker']
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sequence_output, _, _ = self.get_representation(self.longformer, ctx_encode_ids, ctx_attn_mask, ctx_global_attn_mask, self.fix_encoder)
-        yn_scores = self.yes_no_prediction(sequence_output=sequence_output)
+        answer_type_scores = self.answer_type_prediction(sequence_output=sequence_output)
         start_logits, end_logits = self.span_prediction(sequence_output=sequence_output)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         start_logits = start_logits.masked_fill(ctx_attn_mask == 0, self.mask_value)
@@ -62,20 +60,20 @@ class LongformerHotPotQAModel(nn.Module):
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         sent_scores = self.supp_sent_prediction(sequence_output=sequence_output, sent_position=sent_positions)
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        output = {'yn_score': yn_scores, 'span_score': (start_logits, end_logits), 'sent_score': sent_scores}
+        output = {'answer_type_score': answer_type_scores, 'answer_span_score': (start_logits, end_logits), 'sent_score': sent_scores}
         if self.training:
             loss_res = self.loss_computation(sample=sample, output_scores=output)
             return loss_res
         else:
             return output
 
-    def yes_no_prediction(self, sequence_output: T):
+    def answer_type_prediction(self, sequence_output: T):
         cls_emb = sequence_output[:, 0, :]
-        scores = self.yn_outputs(cls_emb).squeeze(dim=-1)
+        scores = self.answer_type_outputs(cls_emb).squeeze(dim=-1)
         return scores
 
-    def span_prediction(self, sequence_output: T):
-        logits = self.qa_outputs(sequence_output)
+    def answer_span_prediction(self, sequence_output: T):
+        logits = self.answer_span_prediction(sequence_output)
         start_logits, end_logits = logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1)
         end_logits = end_logits.squeeze(-1)
@@ -86,7 +84,7 @@ class LongformerHotPotQAModel(nn.Module):
         batch_size, sent_num = sent_position.shape
         batch_idx = torch.arange(0, batch_size).view(batch_size, 1).repeat(1, sent_num).to(sequence_output.device)
         sent_embed = sequence_output[batch_idx, sent_position]
-        #####++++++++++++++++++++
+        #####+++++++++++++++++++++++++++++++++
         sent_score = self.sent_mlp.forward(sent_embed).squeeze(dim=-1)
         return sent_score
 
