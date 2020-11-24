@@ -94,14 +94,14 @@ def load_check_point_for_train(model, optimizer: Adam, PATH: str):
 
 def load_check_point(model, model_name: str, PATH: str):
     model_path_name = os.path.join(PATH, model_name)
-    model = load_model(model=model, PATH=model_path_name)
+    model = load_model(model=model, model_path=model_path_name)
     return model
 
-def load_model(model, PATH: str):
+def load_model(model, model_path: str):
     if not torch.cuda.is_available():
         device = torch.device("cpu")
-        checkpoint = torch.load(PATH, device)
+        checkpoint = torch.load(model_path, device)
     else:
-        checkpoint = torch.load(PATH)
+        checkpoint = torch.load(model_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     return model

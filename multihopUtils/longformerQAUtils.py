@@ -12,7 +12,8 @@ from transformers.configuration_longformer import LongformerConfig
 PRE_TAINED_LONFORMER_BASE = 'allenai/longformer-base-4096'
 FINE_TUNED_SQUADV_MODEL_NAME = 'valhalla/longformer-base-4096-finetuned-squadv1'
 FINE_TUNED_SQUADV2_MODEL_NAME = 'mrm8488/longformer-base-4096-finetuned-squadv2'
-
+########################################################################################################################
+########################################################################################################################
 class QATensorizer(object):
     """
     Component for all text to reasonModel input data conversions and related utility methods
@@ -49,7 +50,7 @@ class QATensorizer(object):
 
     def set_pad_to_max(self, pad: bool):
         raise NotImplementedError
-
+########################################################################################################################
 class LongformerQATensorizer(QATensorizer):
     def __init__(self, tokenizer: LongformerTokenizer, max_length: int, pad_to_max: bool = True):
         self.tokenizer = tokenizer
@@ -120,7 +121,7 @@ class LongformerQATensorizer(QATensorizer):
 
     def set_pad_to_max(self, do_pad: bool):
         self.pad_to_max = do_pad
-
+########################################################################################################################
 def get_hotpotqa_longformer_tokenizer(model_name=PRE_TAINED_LONFORMER_BASE, do_lower_case=True):
     tokenizer = LongformerTokenizer.from_pretrained(model_name, do_lower_case=do_lower_case)
     special_tokens_dict = {'additional_special_tokens': ['<q>', '</q>', '<d>', '<p>']}
@@ -128,7 +129,7 @@ def get_hotpotqa_longformer_tokenizer(model_name=PRE_TAINED_LONFORMER_BASE, do_l
     print('Number of added tokens = {}: {}'.format(num_added_toks, special_tokens_dict))
     print('*' * 75)
     return tokenizer
-
+########################################################################################################################
 class LongformerEncoder(LongformerModel):
     def __init__(self, config, project_dim: int = 0, seq_project=True):
         LongformerModel.__init__(self, config)
@@ -182,7 +183,7 @@ class LongformerEncoder(LongformerModel):
         if self.encode_proj:
             return self.encode_proj.out_features
         return self.config.hidden_size
-
+########################################################################################################################
 # if __name__ == '__main__':
 #     tokenizer = LongformerTokenizer.from_pretrained(PRE_TAINED_LONFORMER_BASE, do_lower_case=True)
 #
