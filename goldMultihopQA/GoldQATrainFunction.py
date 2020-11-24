@@ -16,9 +16,8 @@ from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevD
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder, get_hotpotqa_longformer_tokenizer
 from reasonModel.GoldQAModel import LongformerHotPotQAModel
 from modelEvaluation.hotpotEvaluationUtils import sp_score, answer_type_prediction, answer_span_prediction
-from modelTrain.modelTrainUtils import read_train_dev_data_frame, log_metrics, MASK_VALUE
+from modelTrain.modelTrainUtils import read_train_dev_data_frame, log_metrics
 ########################################################################################################################
-
 def get_train_data_loader(args):
     data_frame = read_train_dev_data_frame(file_path=args.data_path, json_fileName=args.train_data_name)
     batch_size = args.batch_size
@@ -285,7 +284,7 @@ def test_all_steps(model, device, test_data_loader, tokenizer, args):
 
 def metric_computation(output_scores: dict, sample: dict, args):
     # =========Answer type prediction==========================
-    yn_scores = output_scores['yn_score']
+    yn_scores = output_scores['answer_type_score']
     yn_true_labels = sample['yes_no']
     if len(yn_true_labels.shape) > 1:
         yn_true_labels = yn_true_labels.squeeze(dim=-1)
