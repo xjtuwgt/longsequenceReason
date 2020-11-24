@@ -33,7 +33,6 @@ def sp_score(prediction, gold):
     em = 1.0 if fp + fn == 0 else 0.0
     return em, prec, recall, f1
 ########################################################################################################################
-
 def answer_type_prediction(type_scores: T, true_labels: T):
     type_predicted_labels = torch.argmax(type_scores, dim=-1)
     correct_num = (type_predicted_labels == true_labels).sum().data.item()
@@ -41,7 +40,7 @@ def answer_type_prediction(type_scores: T, true_labels: T):
     ans_type_map = {0: 'span', 1: 'yes', 2: 'no'}
     type_predicted_labels = [ans_type_map[_] for _ in type_predicted_labels]
     return correct_num, type_predicted_labels
-
+########################################################################################################################
 def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions: T, sent_end_positions: T, sent_mask: T):
     batch_size, seq_len = start_scores.shape[0], start_scores.shape[1]
     start_prob = torch.sigmoid(start_scores)
@@ -68,7 +67,7 @@ def answer_span_prediction(start_scores: T, end_scores: T, sent_start_positions:
         assert max_pair_idx is not None, 'max score {}'.format(max_score_i)
         answer_span_pairs.append(max_pair_idx)
     return answer_span_pairs
-
+########################################################################################################################
 def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: int = MAX_ANSWER_DECODE_LEN):
     sent_len = start_scores.shape[0]
     score_matrix = torch.matmul(start_scores.view(1,-1).t(), end_scores.view(1,-1))
@@ -83,7 +82,7 @@ def answer_span_in_sentence(start_scores: T, end_scores: T, max_ans_decode_len: 
     start_idx, end_idx = start_idx.data.item(), end_idx.data.item()
     score = score_matrix[start_idx][end_idx]
     return score, start_idx, end_idx
-
+########################################################################################################################
 def add_id_context(data: DataFrame):
     golden_data, _ = HOTPOT_DevData_Distractor()
     data[['_id', 'context']] = golden_data[['_id', 'context']]
@@ -137,3 +136,4 @@ def convert2leadBoard(data: DataFrame, tokenizer: LongformerTokenizer, gold=Fals
     metrics = json_eval(prediction=predicted_data_dict, gold=golden_data_dict)
     res_data_frame = pd.DataFrame.from_dict(predicted_data_dict)
     return metrics, res_data_frame
+########################################################################################################################
