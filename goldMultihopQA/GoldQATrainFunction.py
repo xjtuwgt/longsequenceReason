@@ -193,7 +193,7 @@ def train_all_steps(model, optimizer, train_dataloader, dev_dataloader, device, 
 
 def train_single_step(model, optimizer, train_sample, args):
     '''
-    A single train step. Apply back-propation and return the loss
+    A single train step. Apply back-propagation and return the loss
     '''
     model.train()
     model.zero_grad()
