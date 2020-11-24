@@ -88,44 +88,58 @@ class LongformerHotPotQAModel(nn.Module):
         sent_score = self.sent_mlp.forward(sent_embed).squeeze(dim=-1)
         return sent_score
 
-    def loss_computation(self, output_scores, sample):
-        yn_score = output_scores['yn_score']
-        yn_label = sample['yes_no']
-        if len(yn_label.shape) > 1:
-            yn_label = yn_label.squeeze(dim=-1)
-        yn_loss_fct = MultiClassFocalLoss(num_class=3)
-        yn_loss = yn_loss_fct.forward(yn_score, yn_label)
-        yn_num = (yn_label > 0).sum().data.item()
-        ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        sent_score = output_scores['sent_score']
-        sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
-        sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+    def answer_span_loss(self, start_logits: T, end_logits: T, start_positions: T, end_positions: T):
+        if len(start_positions.size()) > 1:
+            start_positions = start_positions.squeeze(-1)
+        if len(end_positions.size()) > 1:
+            end_positions = end_positions.squeeze(-1)
+        # sometimes the start/end positions are outside our model inputs, we ignore these terms
+        ignored_index = start_logits.size(1)
+        start_positions.clamp_(0, ignored_index)
+        end_positions.clamp_(0, ignored_index)
 
-        sent_score = sent_score.masked_fill(sent_lens == 0, self.mask_value)
+        loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
+        start_loss = loss_fct(start_logits, start_positions)
+        end_loss = loss_fct(end_logits, end_positions)
+        total_loss = (start_loss + end_loss) / 2
+        return total_loss
+
+    def answer_type_loss(self, answer_type_logits: T, true_labels: T):
+        if len(true_labels.shape) > 1:
+            true_lables = true_labels.squeeze(dim=-1)
+        no_span_num = (true_lables > 0).sum().data.item()
+        answer_type_loss_fct = MultiClassFocalLoss(num_class=3)
+        yn_loss = answer_type_loss_fct.forward(answer_type_logits, true_lables)
+        return yn_loss, no_span_num, true_lables
+
+    def supp_sent_loss(self, sent_scores: T, sent_label: T, sent_mask: T):
         supp_loss_fct = PairwiseCEFocalLoss()
-        supp_sent_loss = supp_loss_fct.forward(scores=sent_score, targets=sent_label, target_len=sent_mask)
-        ##+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        start_logits, end_logits = output_scores['span_score']
-        answer_start_positions, answer_end_positions = sample['ans_start'], sample['ans_end']
+        supp_sent_loss = supp_loss_fct.forward(scores=sent_scores, targets=sent_label, target_len=sent_mask)
+        return supp_sent_loss
 
-        if len(answer_start_positions.size()) > 1:
-            answer_start_positions = answer_start_positions.squeeze(-1)
-        if len(answer_end_positions.size()) > 1:
-            answer_end_positions = answer_end_positions.squeeze(-1)
-        # sometimes the start/end positions are outside our reasonModel inputs, we ignore these terms
-        #########################
-        if yn_num > 0:
-            ans_batch_idx = (yn_label > 0).nonzero().squeeze()
+    def loss_computation(self, output_scores: dict, sample: dict):
+        answer_type_scores = output_scores['answer_type_score']
+        answer_type_labels = sample['yes_no']
+        answer_type_loss_score, no_span_num, answer_type_labels = self.answer_type_loss(
+            answer_type_logits=answer_type_scores,
+            true_labels=answer_type_labels)
+        ################################################################################################################
+        answer_start_positions, answer_end_positions = sample['ans_start'], sample['ans_end']
+        start_logits, end_logits = output_scores['answer_span_score']
+        if no_span_num > 0:
+            ans_batch_idx = (answer_type_labels > 0).nonzero().squeeze()
             start_logits[ans_batch_idx] = -10
             end_logits[ans_batch_idx] = -10
             start_logits[ans_batch_idx, answer_start_positions[ans_batch_idx]] = 10
             end_logits[ans_batch_idx, answer_end_positions[ans_batch_idx]] = 10
-        #########################
-        ignored_index = start_logits.size(1)
-        answer_start_positions.clamp_(0, ignored_index)
-        answer_end_positions.clamp_(0, ignored_index)
-        span_loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
-        start_loss = span_loss_fct(start_logits, answer_start_positions)
-        end_loss = span_loss_fct(end_logits, answer_end_positions)
-        span_loss = (start_loss + end_loss) / 2
-        return {'yn_loss': yn_loss, 'span_loss': span_loss, 'sent_loss': supp_sent_loss}
+        ################################################################################################################
+        answer_span_loss_score = self.answer_span_loss(start_logits=start_logits, end_logits=end_logits,
+                                                       start_positions=answer_start_positions,
+                                                       end_positions=answer_end_positions)
+        ################################################################################################################
+        sent_scores = output_scores['sent_score']
+        sent_label, sent_lens = sample['sent_labels'], sample['sent_lens']
+        sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
+        supp_sent_loss_score = self.supp_sent_loss(sent_scores=sent_scores, sent_label=sent_label, sent_mask=sent_mask)
+        ################################################################################################################
+        return {'answer_type_loss': answer_type_loss_score, 'span_loss': answer_span_loss_score, 'sent_loss': supp_sent_loss_score}

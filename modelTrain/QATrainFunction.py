@@ -130,7 +130,7 @@ def train_single_step(model, optimizer, train_sample, args):
     else:
         sample = train_sample
     loss_output = model(sample)
-    yn_loss, span_loss, supp_doc_loss, supp_sent_loss = loss_output['yn_loss'], \
+    yn_loss, span_loss, supp_doc_loss, supp_sent_loss = loss_output['answer_type_loss'], \
                                                         loss_output['span_loss'], \
                                                         loss_output['doc_loss'], loss_output['sent_loss']
     supp_doc_pair_loss = loss_output['doc_pair_loss']

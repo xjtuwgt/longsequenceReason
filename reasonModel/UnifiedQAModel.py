@@ -322,6 +322,6 @@ class LongformerHotPotQAModel(nn.Module):
         sent_mask = sent_lens.masked_fill(sent_lens > 0, 1)
         supp_sent_loss_score = self.supp_sent_loss(sent_scores=sent_scores, sent_label=sent_label, sent_mask=sent_mask)
         ################################################################################################################
-        return {'yn_loss': answer_type_loss_score, 'span_loss': answer_span_loss_score,
+        return {'answer_type_loss': answer_type_loss_score, 'span_loss': answer_span_loss_score,
                 'doc_loss': supp_doc_loss_score, 'doc_pair_loss': supp_doc_pair_loss_score,
                 'sent_loss': supp_sent_loss_score}
