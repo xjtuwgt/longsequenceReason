@@ -16,9 +16,7 @@ from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevD
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder, get_hotpotqa_longformer_tokenizer
 from reasonModel.GoldQAModel import LongformerHotPotQAModel
 from modelEvaluation.hotpotEvaluationUtils import sp_score, answer_type_prediction, answer_span_prediction
-from modelTrain.QATrainFunction import read_train_dev_data_frame, log_metrics
-########################################################################################################################
-MASK_VALUE = -1e9
+from modelTrain.modelTrainUtils import read_train_dev_data_frame, log_metrics, MASK_VALUE
 ########################################################################################################################
 
 def get_train_data_loader(args):

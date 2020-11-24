@@ -10,10 +10,8 @@ from pandas import DataFrame
 from torch import Tensor as T
 from modelEvaluation.hotpotEvaluationUtils import sp_score
 from modelEvaluation.hotpotEvaluationUtils import answer_span_prediction, answer_type_prediction
+from modelTrain.modelTrainUtils import MASK_VALUE
 ########################################################################################################################
-MASK_VALUE = -1e9
-########################################################################################################################
-
 ########################################################################################################################
 def hierartical_decoder(model, device, test_data_loader, doc_topk, args):
     '''

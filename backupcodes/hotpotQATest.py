@@ -12,7 +12,7 @@ import torch
 import pandas as pd
 import json
 from torch import Tensor as T
-from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame
+from modelTrain.modelTrainUtils import read_train_dev_data_frame
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, get_hotpotqa_longformer_tokenizer
 
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder

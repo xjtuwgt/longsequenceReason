@@ -12,7 +12,7 @@ import torch
 import json
 from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting
-from modelTrain.QATrainFunction import get_date_time, read_train_dev_data_frame, log_metrics
+from modelTrain.modelTrainUtils import get_date_time, read_train_dev_data_frame, log_metrics
 from modelEvaluation.hotpotEvaluationUtils import convert2leadBoard
 
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder

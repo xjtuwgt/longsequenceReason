@@ -12,7 +12,7 @@ import torch
 from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting, set_seeds
 from goldMultihopQA.GoldQATrainFunction import get_train_data_loader, get_dev_data_loader, get_model
-from modelTrain.QATrainFunction import get_date_time
+from modelTrain.modelTrainUtils import get_date_time
 from goldMultihopQA.GoldQATrainFunction import train_all_steps, test_all_steps, log_metrics
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE, get_hotpotqa_longformer_tokenizer
 

@@ -8,11 +8,9 @@ from time import time
 import torch
 from pandas import DataFrame
 from torch import Tensor as T
+from modelTrain.modelTrainUtils import MASK_VALUE
 from modelEvaluation.hotpotEvaluationUtils import sp_score
 ########################################################################################################################
-MASK_VALUE = -1e9
-########################################################################################################################
-
 ########################################################################################################################
 def soft_hierartical_decoder(model, device, test_data_loader, doc_topk, args):
     '''

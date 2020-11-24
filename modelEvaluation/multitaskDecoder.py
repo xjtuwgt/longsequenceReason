@@ -10,9 +10,8 @@ from pandas import DataFrame
 from torch import Tensor as T
 from modelEvaluation.hotpotEvaluationUtils import answer_type_prediction, answer_span_prediction
 from modelEvaluation.hotpotEvaluationUtils import sp_score
+from modelTrain.modelTrainUtils import MASK_VALUE
 from transformers import LongformerTokenizer
-##################################
-MASK_VALUE = -1e9
 ##################################
 def multi_task_decoder(model, test_data_loader, device, args):
     '''

@@ -11,7 +11,7 @@ from time import time
 import torch
 from torch.nn import DataParallel
 from multihopUtils.gpu_utils import gpu_setting, set_seeds
-from modelTrain.QATrainFunction import get_train_data_loader, get_dev_data_loader, get_model, get_date_time, get_check_point
+from modelTrain.modelTrainUtils import get_train_data_loader, get_dev_data_loader, get_model, get_date_time, get_check_point
 from modelTrain.QATrainFunction import train_all_steps, test_all_steps, log_metrics
 from multihopUtils.longformerQAUtils import PRE_TAINED_LONFORMER_BASE
 
