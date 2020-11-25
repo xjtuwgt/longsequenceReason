@@ -3,7 +3,7 @@ from torch import nn
 import torch
 from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss, TriplePairwiseCEFocalLoss
-from reasonModel.Transformer import Transformer
+from reasonModel.modelUtils import Transformer
 from reasonModel.modelUtils import MLP
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
