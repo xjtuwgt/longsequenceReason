@@ -5,6 +5,7 @@ from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss, TriplePairwiseCEFocalLoss
 from reasonModel.modelUtils import Transformer
 from reasonModel.modelUtils import MLP
+from modelTrain.modelTrainUtils import MASK_VALUE
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 
@@ -77,7 +78,7 @@ class LongformerHotPotQAModel(nn.Module):
             self.hop_doc_dotproduct = DotProduct(args=args) if self.hop_model_name == 'DotProduct' else None
             self.hop_doc_bilinear = BiLinear(args=args, project_dim=self.hidden_size) if self.hop_model_name == 'BiLinear' else None
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.mask_value = -1e9
+        self.mask_value = MASK_VALUE
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @staticmethod

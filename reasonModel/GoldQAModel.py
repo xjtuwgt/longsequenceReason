@@ -4,6 +4,7 @@ import torch
 from multihopUtils.longformerQAUtils import LongformerEncoder
 from multihopUtils.hotpotQAlossUtils import MultiClassFocalLoss, PairwiseCEFocalLoss
 from torch.nn import CrossEntropyLoss
+from modelTrain.modelTrainUtils import MASK_VALUE
 from reasonModel.modelUtils import MLP
 
 ########################################################################################################################
@@ -20,7 +21,7 @@ class LongformerHotPotQAModel(nn.Module):
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.sent_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1)
         ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.mask_value = -1e9
+        self.mask_value = MASK_VALUE
         ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @staticmethod
