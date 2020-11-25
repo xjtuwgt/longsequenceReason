@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from modelEvaluation.hotpotEvaluationUtils import convert2leadBoard
 from goldMultihopQA.goldHotpotQAdataloader import HotpotTrainDataset, HotpotDevDataset
 from multihopUtils.longformerQAUtils import LongformerQATensorizer, LongformerEncoder, get_hotpotqa_longformer_tokenizer
-from reasonModel.GoldQAModel import LongformerHotPotQAModel
+from reasonModel.QAModel import LongformerHotPotQAModel
 from modelEvaluation.hotpotEvaluationUtils import sp_score, answer_type_prediction, answer_span_prediction
 from modelTrain.modelTrainUtils import read_train_dev_data_frame, log_metrics
 ########################################################################################################################

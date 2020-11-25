@@ -15,14 +15,14 @@ class LongformerHotPotQAModel(nn.Module):
         self.num_labels = num_labels
         self.longformer = longformer
         self.hidden_size = longformer.get_out_size()
+        self.fix_encoder = fix_encoder
+        ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.answer_type_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=3) ## yes, no, span question score
         self.qa_outputs = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=num_labels) ## span prediction score
-        self.fix_encoder = fix_encoder
-        ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.sent_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1)
+        self.sent_mlp = MLP(d_input=self.hidden_size, d_mid=4 * self.hidden_size, d_out=1) ## support sentence prediction score
         ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.mask_value = MASK_VALUE
-        ####+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        ####++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @staticmethod
     def get_representation(sub_model: LongformerEncoder, ids: T, attn_mask: T, global_attn_mask: T,
