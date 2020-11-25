@@ -49,7 +49,6 @@ def get_train_data_loader(args):
     )
     return dataloader, data_size
 
-
 def get_dev_data_loader(args):
     data_frame = read_train_dev_data_frame(file_path=args.data_path, json_fileName=args.dev_data_name)
     batch_size = args.test_batch_size
@@ -218,7 +217,6 @@ def train_single_step(model, optimizer, train_sample, args):
     }
     return log
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-##++++++++++++++++++++++++++++++++++++++++++++++++Test steps++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def test_all_steps(model, device, test_data_loader, tokenizer, args):
     '''
